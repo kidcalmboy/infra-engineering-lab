@@ -44,6 +44,16 @@ infra-engineering-lab/
 
 민감한 정보는 저장하지 않습니다. 비밀번호, API 키, 실제 IP 주소 등은 예시 값이나 환경 변수로 대체합니다.
 
+## 기록 방법
+공부 시작 시: git pull
+git pull origin main
+
+공부 종료 시: git add → git commit → git push
+git add .
+git commit -m "docs: add Linux permission practice"
+git push origin main
+
+
 ## 향후 확장 계획
 
 학습 진도에 따라 필요한 영역만 단계적으로 추가합니다.
