@@ -46,9 +46,11 @@ infra-engineering-lab/
 
 ## 기록 방법
 - 공부 시작 시: git pull
+
 git pull origin main
 
 - 공부 종료 시: git add → git commit → git push
+
 git add .
 git commit -m "docs: add Linux permission practice"
 git push origin main
