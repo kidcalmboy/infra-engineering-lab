@@ -1,9 +1,7 @@
-# Day 1 - Ubuntu Server 실습 환경과 Linux 기본 조작
+# Day 1 - Linux 기본 명령어와 파일·디렉터리 조작
 
 ## 학습 목표
 
-- Windows PC 안에 Ubuntu Server 실습 환경을 구축한다.
-- NAT, 포트 포워딩, SSH가 연결되는 흐름을 이해한다.
 - 현재 사용자, 서버 이름, 작업 위치, IP 주소를 직접 확인한다.
 - 파일과 디렉터리를 만들고 복사·이동·삭제한다.
 - 명령 실행 전 현재 위치와 대상을 확인하는 습관을 만든다.
@@ -17,33 +15,7 @@ Windows Host
           └─ OpenSSH Server (Port 22)
 ```
 
-VirtualBox로 Windows 안에 Ubuntu Server 가상 머신을 만들었다. Ubuntu Server는 GUI보다 CLI 중심이라 실제 Linux 서버 운영 방식에 익숙해지는 데 적합하다.
-
-네트워크는 VirtualBox의 NAT 방식을 사용했다. Ubuntu VM은 NAT를 통해 Windows를 거쳐 외부 네트워크를 사용할 수 있지만, Windows에서 VM으로 바로 접속하려면 별도 연결 규칙이 필요했다.
-
-## NAT, 포트 포워딩, SSH
-
-- **NAT**: VM의 내부 주소를 변환해 Windows를 통해 외부 네트워크와 통신하게 한다.
-- **포트 포워딩**: Windows의 특정 포트로 들어온 요청을 VM의 특정 포트로 전달한다.
-- **SSH**: 원격 서버의 터미널에 안전하게 접속하기 위한 방식이며 기본 포트는 `22`이다.
-
-이번 실습에서는 다음 규칙을 사용했다.
-
-```text
-Windows 127.0.0.1:2222
-        ↓ VirtualBox Port Forwarding
-Ubuntu Server:22
-        ↓
-OpenSSH Server
-```
-
-Windows PowerShell에서 아래 명령으로 Ubuntu Server에 접속했다.
-
-```powershell
-ssh -p 2222 linuxuser@127.0.0.1
-```
-
-여기서 `127.0.0.1`은 Windows 자기 자신을 뜻한다. VirtualBox가 Windows의 `2222`번 포트로 받은 요청을 Ubuntu의 SSH 포트인 `22`번으로 전달한다.
+VirtualBox와 Ubuntu Server 설치, NAT 포트 포워딩, SSH 접속 과정은 [Day 0 실습 환경 구축 기록](day-00-virtualbox-ubuntu-server-setup.md)에 정리했다. 이번 실습은 Windows PowerShell에서 Ubuntu Server에 SSH로 접속한 상태에서 진행했다.
 
 ## 서버 기본 상태 확인
 
