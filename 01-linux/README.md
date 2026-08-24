@@ -15,3 +15,7 @@ Linux 시스템 운영에 필요한 기본 개념과 실습을 기록합니다.
 - 방화벽 기본 설정
 
 각 기록에는 실습 환경, 명령어, 실행 결과, 문제 해결 과정과 배운 점을 포함합니다.
+
+## 학습 기록
+
+- [Day 1 - Ubuntu Server 실습 환경과 Linux 기본 조작](day-01-ubuntu-server-and-basic-cli.md)
