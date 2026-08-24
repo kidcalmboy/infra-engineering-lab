@@ -18,4 +18,5 @@ Linux 시스템 운영에 필요한 기본 개념과 실습을 기록합니다.
 
 ## 학습 기록
 
-- [Day 1 - Ubuntu Server 실습 환경과 Linux 기본 조작](day-01-ubuntu-server-and-basic-cli.md)
+- [Day 0 - VirtualBox와 Ubuntu Server 실습 환경 구축](day-00-virtualbox-ubuntu-server-setup.md)
+- [Day 1 - Linux 기본 명령어와 파일·디렉터리 조작](day-01-linux-basic-cli.md)
