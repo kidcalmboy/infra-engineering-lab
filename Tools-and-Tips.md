@@ -323,3 +323,163 @@ CPU / RAM / Disk / Network
 - **SSH**: 원격지에서 Shell에 안전하게 접근할 수 있도록 해주는 통신 프로토콜
 
 서버 운영 관점에서 이 구조를 이해하면 `ssh`, `bash`, `systemctl`, 프로세스, 포트, 네트워크의 관계를 이해하기 쉬워진다.
+
+---
+
+### 알아두면 좋은 Linux 운영 명령어
+
+#### 시스템 종료 / 재부팅
+Ubuntu Server VM을 끌 때는 VirtualBox에서 강제로 전원을 끄기보다 Linux 안에서 정상 종료하는 것이 좋다.
+
+```bash
+sudo poweroff
+```
+
+현재 시스템을 정상 종료하고 전원을 끈다. VM 실습에서는 가장 간단하게 사용할 수 있는 종료 명령이다.
+
+```bash
+sudo shutdown -h now
+```
+
+현재 시스템을 즉시 정상 종료한다.
+
+```bash
+sudo reboot
+```
+
+시스템을 정상적으로 재부팅한다.
+
+정리:
+
+```text
+sudo poweroff         → 시스템 종료
+sudo shutdown -h now  → 즉시 종료
+sudo reboot           → 재부팅
+```
+
+#### 현재 환경 빠르게 확인
+
+```bash
+whoami
+hostname
+pwd
+ip addr
+```
+
+- `whoami`: 현재 로그인한 사용자 확인
+- `hostname`: 현재 접속한 서버 이름 확인
+- `pwd`: 현재 작업 위치 확인
+- `ip addr`: 네트워크 인터페이스와 IP 확인
+
+서버에 접속한 직후 **누구로 로그인했는지 / 어느 서버인지 / 어느 위치인지 / 네트워크 상태가 어떤지** 확인할 때 유용하다.
+
+#### 서비스 상태 확인
+
+```bash
+systemctl status ssh
+```
+
+서비스의 현재 실행 상태를 확인한다.
+
+```bash
+sudo systemctl start ssh
+sudo systemctl stop ssh
+sudo systemctl restart ssh
+```
+
+서비스를 시작, 중지, 재시작한다.
+
+```bash
+sudo systemctl enable ssh
+```
+
+부팅 시 해당 서비스가 자동 시작되도록 설정한다.
+
+```bash
+sudo systemctl enable --now ssh
+```
+
+자동 시작 설정과 즉시 시작을 한 번에 수행한다.
+
+#### 파일 수정 전 백업
+중요한 설정 파일을 수정할 때는 원본 백업을 먼저 만든다.
+
+```bash
+cp service.conf service.conf.bak
+```
+
+수정 후에는 백업본과 현재 파일을 비교할 수 있다.
+
+```bash
+diff service.conf.bak service.conf
+```
+
+예:
+
+```text
+3c3
+< mode=dev
+---
+> mode=prod
+```
+
+`3c3`은 첫 번째 파일의 3번째 줄이 두 번째 파일의 3번째 줄로 변경되었다는 의미다.
+
+```text
+c = change
+a = add
+d = delete
+```
+
+설정 변경 시 기본 습관:
+
+```text
+현재 내용 확인
+→ 백업
+→ 수정
+→ 수정 결과 확인
+→ 필요하면 diff로 변경점 확인
+→ 서비스 반영
+→ 로그 확인
+```
+
+#### 명령어 기록 확인
+
+```bash
+history
+```
+
+이전에 실행한 명령어를 확인한다.
+
+```bash
+history | grep ssh
+```
+
+기록에서 특정 명령어만 찾을 수도 있다.
+
+#### 긴 출력 일부만 확인
+
+```bash
+command | head
+command | tail
+```
+
+예:
+
+```bash
+ls /usr/bin | head
+history | tail -n 20
+```
+
+출력이 너무 길 때 앞부분이나 마지막 부분만 빠르게 확인할 수 있다.
+
+#### 실행 중인 명령 종료
+터미널에서 실행 중인 명령이나 `tail -f`, `ping` 같은 지속 실행 명령을 중단할 때:
+
+```text
+Ctrl + C
+```
+
+를 사용한다.
+
+이 단축키는 터미널에서 일반적인 복사 단축키가 아니라 **현재 실행 중인 프로세스에 인터럽트 신호를 보내는 용도**로 사용된다.
