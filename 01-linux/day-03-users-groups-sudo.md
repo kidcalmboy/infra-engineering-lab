@@ -9,6 +9,7 @@
 - `whoami`, `id`, `groups`, `grep`, `ls -ld`를 이용해 계정 상태를 확인한다.
 - `adduser`로 테스트 사용자를 생성하고 생성 결과를 검증한다.
 - `sudo`가 모든 일반 사용자에게 허용되는 것이 아니라 권한이 부여된 사용자만 사용할 수 있다는 점을 이해한다.
+- `passwd`, `groupadd`, `usermod`, `su`를 이용해 사용자와 그룹을 관리한다.
 - 문제 발생 시 바로 수정하기보다 계정 정보와 실제 파일시스템 상태를 먼저 확인하는 습관을 익힌다.
 
 ## 사용자와 그룹이 필요한 이유
@@ -291,41 +292,7 @@ testuser
 
 sudo의 세부 권한 제어는 `/etc/sudoers`와 `/etc/sudoers.d/`를 이용해 관리할 수 있으며, 이후 `visudo`와 함께 다룬다.
 
-## 실습 문제 확인
-
-### 현재 사용자의 UID/GID 확인
-
-```bash
-id
-```
-
-### 현재 사용자가 속한 그룹 확인
-
-```bash
-groups
-```
-
-### testuser의 계정 정보 확인
-
-```bash
-grep "^testuser:" /etc/passwd
-```
-
-### testuser의 홈 디렉터리 확인
-
-```bash
-ls -ld /home/testuser
-```
-
-### testuser의 sudo 그룹 여부 확인
-
-```bash
-groups testuser
-```
-
-출력에 `sudo`가 없다면 sudo 그룹에 속해 있지 않은 상태다.
-
-## Troubleshooting 실습
+## Troubleshooting - 홈 디렉터리 확인
 
 ### 상황
 
@@ -337,19 +304,6 @@ groups testuser
 id testuser
 grep "^testuser:" /etc/passwd
 ls -ld /home/testuser
-```
-
-해석:
-
-```text
-id testuser
-→ 계정이 실제로 존재하는가?
-
-grep "^testuser:" /etc/passwd
-→ 계정의 홈 디렉터리가 어디로 설정되어 있는가?
-
-ls -ld /home/testuser
-→ 실제 디렉터리가 존재하는가?
 ```
 
 핵심 Troubleshooting 흐름:
@@ -366,7 +320,286 @@ ls -ld /home/testuser
 
 문제가 있다고 들었다고 해서 곧바로 `mkdir`나 설정 변경을 수행하기보다, 먼저 시스템이 실제로 어떤 상태인지 확인하는 것이 중요하다.
 
-## 오늘까지 핵심 명령어
+# 그룹 관리와 사용자 전환
+
+## `passwd` - 비밀번호 변경
+
+현재 로그인한 사용자의 비밀번호 변경:
+
+```bash
+passwd
+```
+
+특정 사용자의 비밀번호를 관리자가 변경:
+
+```bash
+sudo passwd testuser
+```
+
+정리:
+
+```text
+passwd
+→ 현재 사용자 자신의 비밀번호 변경
+
+sudo passwd testuser
+→ 관리자 권한으로 testuser 비밀번호 변경
+```
+
+비밀번호 인증 정보는 `/etc/shadow`와 연결된다.
+
+## `groupadd` - 그룹 생성
+
+운영 실습용 그룹 `ops`를 생성했다.
+
+```bash
+sudo groupadd ops
+```
+
+그룹 확인:
+
+```bash
+grep "^ops:" /etc/group
+```
+
+실습 결과:
+
+```text
+ops:x:1002:testuser
+```
+
+여기서 `1002`는 `ops` 그룹의 GID다.
+
+## `usermod -aG` - 사용자를 그룹에 추가
+
+`testuser`를 `ops` 그룹에 추가했다.
+
+```bash
+sudo usermod -aG ops testuser
+```
+
+옵션 의미:
+
+```text
+usermod
+→ 기존 사용자 정보 수정
+
+-a
+→ append, 기존 보조 그룹을 유지하면서 추가
+
+-G
+→ supplementary groups 지정
+```
+
+따라서:
+
+```bash
+sudo usermod -aG ops testuser
+```
+
+는 `testuser`의 기존 그룹을 유지하면서 `ops` 그룹을 추가한다.
+
+확인:
+
+```bash
+groups testuser
+id testuser
+```
+
+실습 결과:
+
+```text
+testuser : testuser users ops
+```
+
+### `-a` 없이 `-G`만 사용하는 경우 주의
+
+```bash
+sudo usermod -G ops testuser
+```
+
+처럼 `-a` 없이 사용하면 기존 보조 그룹이 교체될 수 있다.
+
+따라서 그룹을 **추가**할 때는 다음 형태를 기본으로 기억한다.
+
+```bash
+sudo usermod -aG 그룹명 사용자명
+```
+
+## 그룹 변경 후 기존 로그인 세션에 바로 반영되지 않을 수 있음
+
+사용자를 새 그룹에 추가해도 이미 열려 있는 로그인 세션에서는 새 그룹 정보가 바로 반영되지 않을 수 있다.
+
+```text
+그룹 변경
+→ 기존 로그인 세션에는 이전 그룹 정보가 남을 수 있음
+→ 로그아웃
+→ 다시 로그인
+→ 새 세션에서 그룹 정보 반영
+```
+
+중요한 점은 `usermod`를 반복 실행하는 것이 아니라 **로그인 세션을 새로 만드는 것**이다.
+
+```bash
+exit
+su - testuser
+```
+
+새 세션에서 확인:
+
+```bash
+groups
+```
+
+## `su` - 사용자 전환
+
+다른 사용자로 전환:
+
+```bash
+su - testuser
+```
+
+전환 후 확인:
+
+```bash
+whoami
+```
+
+실습에서는 다음과 같이 `testuser`로 정상 전환되는 것을 확인했다.
+
+```text
+testuser@ubuntu-server:~$ whoami
+testuser
+```
+
+원래 사용자로 돌아갈 때:
+
+```bash
+exit
+```
+
+## `su testuser`와 `su - testuser` 차이
+
+두 명령은 모두 실행 사용자를 `testuser`로 바꾸지만 로그인 환경 적용 방식이 다르다.
+
+### `su testuser`
+
+```bash
+su testuser
+```
+
+- 실행 사용자는 `testuser`로 변경된다.
+- 현재 작업 디렉터리는 그대로 유지될 수 있다.
+- 현재 사용자의 일부 환경변수와 작업 환경이 남아 있을 수 있다.
+- 완전한 로그인 세션처럼 초기화하지 않는다.
+
+즉 **사용자만 전환하는 것에 가깝다.**
+
+### `su - testuser`
+
+```bash
+su - testuser
+```
+
+- `testuser`가 새로 로그인한 것과 유사한 환경을 만든다.
+- 홈 디렉터리가 `/home/testuser`로 적용된다.
+- `HOME`, `PATH` 등의 로그인 환경이 `testuser` 기준으로 적용된다.
+- 작업 디렉터리도 일반적으로 `testuser`의 홈 디렉터리로 이동한다.
+
+즉 **해당 사용자로 새로 로그인하는 것에 가깝다.**
+
+차이를 확인할 때 유용한 명령:
+
+```bash
+whoami
+pwd
+echo $HOME
+```
+
+운영 실습에서는 특정 사용자의 실제 로그인 환경을 재현하기 위해 보통 다음 형태를 사용한다.
+
+```bash
+su - 사용자명
+```
+
+## `su`와 `sudo` 차이
+
+```text
+su
+→ 다른 사용자 계정으로 전환
+
+sudo
+→ 현재 사용자 상태에서 특정 명령만 관리자 권한으로 실행
+```
+
+예:
+
+```bash
+su - testuser
+```
+
+→ 현재 Shell을 `testuser` 로그인 환경으로 전환
+
+```bash
+sudo poweroff
+```
+
+→ 현재 로그인 사용자는 그대로 두고 `poweroff` 명령만 관리자 권한으로 실행
+
+## 실습에서 확인한 sudo 권한
+
+```bash
+groups linuxuser
+groups testuser
+```
+
+실습 결과 기준:
+
+```text
+linuxuser
+→ sudo 그룹 포함
+
+testuser
+→ sudo 그룹 없음
+```
+
+따라서 Ubuntu 기본 sudo 그룹 정책 기준으로는 `linuxuser`는 sudo를 사용할 수 있고 `testuser`는 사용할 수 없다.
+
+다만 정확한 sudo 가능 여부는 `/etc/sudoers` 또는 `/etc/sudoers.d/`에 사용자별 직접 규칙이 있는지도 함께 확인해야 한다.
+
+## Troubleshooting - 그룹 추가 후 보이지 않는 문제
+
+### 상황
+
+`testuser`를 `ops` 그룹에 추가했지만 이미 로그인되어 있던 `testuser` 세션에서 `groups`를 실행했을 때 `ops`가 보이지 않는다.
+
+### 원인
+
+그룹 변경 사항이 기존 로그인 세션의 인증 정보에 즉시 반영되지 않았기 때문이다.
+
+### 해결
+
+```bash
+exit
+su - testuser
+```
+
+새 로그인 세션을 만든 뒤:
+
+```bash
+groups
+```
+
+로 다시 확인한다.
+
+핵심:
+
+```text
+usermod 다시 실행 X
+로그아웃 → 재로그인 O
+```
+
+## 지금까지 핵심 명령어
 
 ```bash
 whoami
@@ -379,20 +612,21 @@ grep "^sudo:" /etc/group
 sudo grep "^testuser:" /etc/shadow
 ls -ld /home/testuser
 sudo adduser testuser
+passwd
+sudo passwd testuser
+sudo groupadd ops
+grep "^ops:" /etc/group
+sudo usermod -aG ops testuser
+su testuser
+su - testuser
+exit
+pwd
+echo $HOME
 ```
 
 ## 핵심 정리
 
 ```text
-whoami
-→ 현재 사용자
-
-id
-→ UID / GID / 그룹 확인
-
-groups
-→ 그룹 구성 확인
-
 UID
 → 사용자 식별 번호
 
@@ -408,17 +642,23 @@ GID
 /etc/group
 → 그룹 정보
 
-^
-→ 줄의 시작
-
-ls -ld
-→ 디렉터리 자체 상세 정보
-
-adduser
-→ 사용자 생성
-
 sudo
-→ 권한이 부여된 사용자가 특정 명령을 관리자 권한으로 실행
+→ 특정 명령을 관리자 권한으로 실행
+
+groupadd
+→ 그룹 생성
+
+usermod -aG
+→ 기존 그룹을 유지하면서 새 보조 그룹 추가
+
+su testuser
+→ 사용자 전환, 현재 환경 일부 유지
+
+su - testuser
+→ 해당 사용자의 로그인 환경까지 적용하여 전환
+
+exit
+→ 전환한 사용자 세션 종료 후 이전 Shell로 복귀
 ```
 
 ## 다음 학습
@@ -426,11 +666,10 @@ sudo
 다음 단계에서는 아래 내용을 실습한다.
 
 ```text
-passwd
-groupadd
-usermod
-사용자를 그룹에 추가/제거
-su와 sudo 차이
 userdel
-sudo 권한 구조
+groupdel
+계정 잠금/해제
+사용자 삭제 전 확인 절차
+홈 디렉터리 처리
+안전한 계정 정리 Troubleshooting
 ```
