@@ -4,6 +4,65 @@ SM, IT 인프라, DB 시스템 관리 직무를 준비하며 학습한 내용을
 
 Linux, Network, Database, Cloud, Monitoring, Troubleshooting, Automation을 공부하면서 사용한 명령어와 설정, 문제 해결 과정, 프로젝트 결과를 정리합니다.
 
+## Career Goal
+
+### 목표 직무
+
+1순위는 **SM(System Management)·시스템 운영/유지보수 엔지니어**입니다.
+
+장기적으로는 Linux, Database, Network, Cloud를 함께 이해하고 운영할 수 있는 **인프라·DB 시스템 엔지니어**로 성장하는 것을 목표로 합니다.
+
+관심 직무 영역은 다음과 같습니다.
+
+- SM(System Management) / 시스템 운영 엔지니어
+- Linux Server / System Engineer
+- IT Infrastructure Engineer
+- Database Administrator / DB 운영 엔지니어
+- Cloud Infrastructure Engineer
+
+### 관심 기술 영역
+
+단순히 서버를 구축하는 것보다 실제 운영 환경에서 필요한 관리와 장애 대응 능력을 갖추는 것을 중요하게 생각합니다.
+
+```text
+Linux / Windows Server
+Database (MySQL, Oracle)
+Network
+Cloud Infrastructure
+Monitoring
+Log Analysis
+Troubleshooting
+Backup & Recovery
+Permission / Security
+DB Performance Management
+Infrastructure Automation
+```
+
+특히 다음과 같은 운영 업무를 직접 수행할 수 있는 수준을 목표로 합니다.
+
+```text
+서버 상태 확인
+→ 로그 분석
+→ 장애 원인 추적
+→ 설정 수정
+→ 서비스 복구
+→ 결과 검증
+→ 재발 방지 기록
+```
+
+### 준비 방향
+
+컴퓨터공학 전공을 기반으로 복학 전까지 독학과 실습을 지속하면서 GitHub에 학습 과정을 기록하고, 자격증과 실무형 프로젝트를 함께 준비합니다.
+
+현재는 Ubuntu/Linux 서버 운영 실습을 진행하고 있으며 RHCSA 수준의 Linux 시스템 관리 역량까지 학습하는 것을 목표로 합니다.
+
+현재 취득한 자격증:
+
+- SQLD
+- 리눅스마스터
+
+앞으로는 단순한 명령어 암기보다 **Linux + Database + Network + Cloud를 연결해서 이해하고, 실제 장애 상황에서 점검·복구할 수 있는 운영 역량**을 만드는 것이 핵심 목표입니다.
+
 ## 학습 목표
 
 - 운영체제와 네트워크의 기본 원리를 이해하고 직접 검증합니다.
@@ -45,16 +104,20 @@ infra-engineering-lab/
 민감한 정보는 저장하지 않습니다. 비밀번호, API 키, 실제 IP 주소 등은 예시 값이나 환경 변수로 대체합니다.
 
 ## 기록 방법
-- 공부 시작 시: git pull
 
+공부 시작 시:
+
+```bash
 git pull origin main
+```
 
-- 공부 종료 시: git add → git commit → git push
+공부 종료 시:
 
+```bash
 git add .
 git commit -m "docs: add Linux permission practice"
 git push origin main
-
+```
 
 ## 향후 확장 계획
 
