@@ -9,6 +9,7 @@
 - 실제 서버 운영·SM·인프라 업무에서 어떻게 활용되는지 연결한다.
 - 잘못 이해한 내용은 그대로 남기지 않고 정확한 개념으로 수정한다.
 - 실습 중 발생한 문제와 해결 과정은 재현 가능하도록 기록한다.
+- 실습과 Troubleshooting 문제는 **직접 Linux 환경에서 명령어를 실행하고 결과를 확인해 결론을 도출하는 방식**으로 진행한다.
 
 ## 📚 학습 기록
 
@@ -23,6 +24,7 @@
 | [Day 3-2](day-03-account-lock-and-deletion.md) | 계정 잠금과 삭제 | `passwd -l/-u/-S`, `userdel`, `userdel -r`, UID/GID 잔여 파일 |
 | [Day 4-1](day-04-file-permissions-basics.md) | 파일 권한 기초 | Owner/Group/Others, `rwx`, 숫자 권한, `chmod`, `ls -l`, `ls -ld` |
 | [Day 4-2](day-04-directory-permissions-and-symbolic-chmod.md) | 디렉터리 권한과 문자 방식 `chmod` | 파일/디렉터리 `rwx` 차이, 경로 접근, `u/g/o/a`, `+/-/=`, `Permission denied` 분석 |
+| [Day 4-3](day-04-ownership-groups-and-getent.md) | 파일 소유권, 그룹과 `getent` | `chown`, `chgrp`, Primary/Supplementary Group, `id`, `groups`, `getent`, 그룹 기반 권한 관리 |
 
 ## 🧭 전체 학습 로드맵
 
