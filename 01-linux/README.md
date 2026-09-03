@@ -22,6 +22,7 @@
 | [Day 3-1](day-03-users-groups-sudo.md) | 사용자·그룹·sudo | UID/GID, `/etc/passwd`, `/etc/shadow`, `/etc/group`, `adduser`, `groupadd`, `usermod`, `su`, `sudo` |
 | [Day 3-2](day-03-account-lock-and-deletion.md) | 계정 잠금과 삭제 | `passwd -l/-u/-S`, `userdel`, `userdel -r`, UID/GID 잔여 파일 |
 | [Day 4-1](day-04-file-permissions-basics.md) | 파일 권한 기초 | Owner/Group/Others, `rwx`, 숫자 권한, `chmod`, `ls -l`, `ls -ld` |
+| [Day 4-2](day-04-directory-permissions-and-symbolic-chmod.md) | 디렉터리 권한과 문자 방식 `chmod` | 파일/디렉터리 `rwx` 차이, 경로 접근, `u/g/o/a`, `+/-/=`, `Permission denied` 분석 |
 
 ## 🧭 전체 학습 로드맵
 
