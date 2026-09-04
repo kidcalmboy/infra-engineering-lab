@@ -25,6 +25,7 @@
 | [Day 4-1](day-04-file-permissions-basics.md) | 파일 권한 기초 | Owner/Group/Others, `rwx`, 숫자 권한, `chmod`, `ls -l`, `ls -ld` |
 | [Day 4-2](day-04-directory-permissions-and-symbolic-chmod.md) | 디렉터리 권한과 문자 방식 `chmod` | 파일/디렉터리 `rwx` 차이, 경로 접근, `u/g/o/a`, `+/-/=`, `Permission denied` 분석 |
 | [Day 4-3](day-04-ownership-groups-and-getent.md) | 파일 소유권, 그룹과 `getent` | `chown`, `chgrp`, Primary/Supplementary Group, `id`, `groups`, `getent`, 그룹 기반 권한 관리 |
+| [Day 4-4](day-04-special-permissions-and-sudo.md) | 특수 권한과 `sudo` | SetUID, SetGID, Sticky Bit, `/usr/bin/passwd`, 절대/상대 경로, `sudo` 판단, 공유 디렉터리 실습 |
 
 ## 🧭 전체 학습 로드맵
 
