@@ -1,69 +1,453 @@
-# Day 1 - Linux 기본 명령어와 파일·디렉터리 조작
+# Day 1 — Linux 기본 CLI와 파일시스템
 
-## 학습 목표
+> Linux 서버에서 **현재 위치·대상·출력 흐름을 정확히 이해하고 안전하게 파일을 조작하는 방법**을 학습했다. 명령어 암기보다 `경로 → 파일/디렉터리 → 표준 입출력 → 리다이렉션 → 파이프 → 핵심 디렉터리`가 어떻게 연결되는지 이해하는 것이 목표다.
 
-- 현재 사용자, 서버 이름, 작업 위치, IP 주소를 직접 확인한다.
-- 파일과 디렉터리를 만들고 복사·이동·삭제한다.
-- 파일 내용을 전체/일부/실시간으로 확인하는 방법을 익힌다.
-- `>`와 `>>`의 차이를 이해하고 파일 덮어쓰기 사고를 예방한다.
-- 명령 실행 전 현재 위치와 대상을 확인하는 습관을 만든다.
+## 📌 이번에 배운 내용
 
-## 실습 환경
+- Shell, Prompt, Command, Option, Argument
+- `pwd`, `ls`, `cd`, `mkdir`, `touch`, `cp`, `mv`, `rm`
+- 절대경로 / 상대경로 / `/` / `.` / `..` / `~`
+- 일반 파일과 디렉터리 차이
+- `cat`, `less`, `head`, `tail`, `history`
+- `head -n`, `tail -n`, `tail -f`
+- Standard Input / Output / Error의 기초
+- `>`, `>>`, `|`
+- `/etc`, `/var`, `/var/log`, `/home`, `/tmp`, `/proc`, `/dev`, `/usr`
+- 작업 전 `pwd → ls → 확인 → 실행 → 검증` 절차
+
+## 📚 목차
+
+1. Shell과 명령어 구조
+2. Linux 파일시스템과 경로
+3. 파일과 디렉터리 생성·조작
+4. 파일 내용 확인
+5. 표준 입출력
+6. Redirection과 Pipe
+7. 주요 시스템 디렉터리
+8. 주요 명령어와 옵션
+9. 실제 실습
+10. 헷갈리기 쉬운 부분
+11. Troubleshooting
+12. 실무 포인트
+13. 핵심 정리
+14. 복습 문제
+
+## ⚡ 명령어 빠른 복습
+
+| 명령어 | 옵션/인자 | 의미 | 실무 사용 |
+|---|---|---|---|
+| `pwd` | 없음 | 현재 작업 디렉터리의 절대경로 출력 | 삭제·수정 전 위치 확인 |
+| `ls -al` | `-a` all, `-l` long | 숨김 파일 포함 상세 목록 | 권한/소유자/파일 확인 |
+| `ls -ld dir` | `-d` directory itself | 디렉터리 내부가 아니라 자체 정보 | 디렉터리 권한 확인 |
+| `cd /etc` | `/etc` = argument | 작업 디렉터리 변경 | 설정 디렉터리 이동 |
+| `mkdir dir` | `dir` = 새 디렉터리명 | 디렉터리 생성 | 작업 공간 생성 |
+| `touch file` | `file` = 대상 | 빈 파일 생성 또는 timestamp 갱신 | 실습 파일 생성 |
+| `cp src dst` | source / destination | 복사 | 설정 백업 |
+| `mv src dst` | source / destination | 이동 또는 rename | 파일 배치/이름 변경 |
+| `rm file` | 대상 파일 | 삭제 | 불필요 파일 제거 |
+| `head -n 10 file` | `-n` number | 앞 10줄 확인 | 로그 앞부분 확인 |
+| `tail -n 20 file` | `-n` number | 끝 20줄 확인 | 최신 로그 확인 |
+| `tail -f file` | `-f` follow | 파일에 추가되는 줄 지속 확인 | 실시간 로그 관찰 |
+
+---
+
+## 1. Shell과 명령어 구조
+
+### Shell이란?
+
+Shell은 사용자의 명령을 해석해서 프로그램을 실행하고 결과를 보여주는 인터페이스다. 현재 Ubuntu Server에서는 Bash를 주로 사용한다.
 
 ```text
-Windows Host
-  └─ VirtualBox
-      └─ Ubuntu Server Guest
-          └─ OpenSSH Server (Port 22)
+사용자 입력
+→ Shell(Bash)
+→ 명령 해석
+→ 프로그램 실행 요청
+→ Kernel
+→ 결과 출력
 ```
 
-VirtualBox와 Ubuntu Server 설치, NAT 포트 포워딩, SSH 접속 과정은 [Day 0 실습 환경 구축 기록](day-00-virtualbox-ubuntu-server-setup.md)에 정리했다. 이번 실습은 Windows PowerShell에서 Ubuntu Server에 SSH로 접속한 상태에서 진행했다.
+### Prompt란?
 
-## 서버 기본 상태 확인
+예:
 
-SSH 접속 후 다음 명령으로 현재 환경을 확인했다.
+```text
+linuxuser@ubuntu-server:~$
+```
+
+대략 다음 정보를 보여준다.
+
+```text
+linuxuser     → 현재 사용자
+ubuntu-server → hostname
+~             → 현재 위치(홈 디렉터리)
+$             → 일반 사용자 shell prompt
+```
+
+root 계정에서는 흔히 `#`가 보일 수 있지만, prompt 문자만으로 권한을 단정하지 말고 `whoami`, `id`로 확인하는 습관이 좋다.
+
+### Command / Option / Argument
+
+예:
 
 ```bash
-whoami
-hostname
-pwd
-ip addr
+ls -l /etc
 ```
 
-확인한 내용은 다음과 같다.
+```text
+ls   → command
+-l   → option
+/etc → argument
+```
 
-- `whoami`: 현재 로그인한 사용자가 누구인지 확인
-- `hostname`: 접속한 서버의 이름 확인
-- `pwd`: 현재 작업 중인 디렉터리 확인
-- `ip addr`: 네트워크 인터페이스와 VM의 IP 주소 확인
+**Option**은 명령의 동작 방식을 바꾸고, **Argument**는 명령이 처리할 대상이나 값을 지정한다.
 
-서버에서 작업할 때는 먼저 **누구로 로그인했는지, 어느 서버인지, 어느 위치인지** 확인하는 것이 중요하다.
+---
 
-## 파일과 디렉터리 실습
+## 2. Linux 파일시스템과 경로
 
-오늘 사용한 명령어는 다음과 같다.
+Linux의 파일시스템은 최상위 `/`에서 시작하는 하나의 트리 구조로 보인다.
 
-| 명령어 | 실습에서 사용한 목적 |
-| --- | --- |
-| `pwd` | 현재 위치 확인 |
-| `ls` | 현재 위치의 파일과 디렉터리 확인 |
-| `cd` | 다른 디렉터리로 이동 |
-| `mkdir` | 실습 및 백업 디렉터리 생성 |
-| `touch` | 빈 실습 파일 생성 |
-| `cp` | 원본을 유지한 채 파일 복사 |
-| `mv` | 파일 이동 또는 이름 변경 |
-| `rm` | 불필요한 파일 삭제 |
+```text
+/
+├─ etc
+├─ home
+├─ usr
+├─ var
+└─ tmp
+```
 
-경로를 사용할 때 다음 차이도 확인했다.
+Windows의 `C:`, `D:`처럼 사용자에게 드라이브 문자가 직접 보이는 방식과 다르다. 다른 디스크도 특정 디렉터리에 **mount**되어 하나의 트리에 연결될 수 있다.
 
-- `/home/linuxuser/test.txt`: `/`부터 시작하는 **절대경로**
-- `backup/test1.txt`: 현재 위치를 기준으로 찾는 **상대경로**
-- `~`: 현재 사용자의 홈 디렉터리
-- `..`: 현재 위치의 상위 디렉터리
+### 절대경로
 
-## 직접 실습 - 파일과 디렉터리
+`/`부터 시작하는 전체 경로다.
 
-홈 디렉터리 아래에 `linux-test`를 만들고 파일을 조작했다.
+```text
+/home/linuxuser/test.txt
+```
+
+현재 위치와 관계없이 같은 대상을 가리킨다.
+
+### 상대경로
+
+현재 작업 디렉터리를 기준으로 해석한다.
+
+```text
+backup/test.txt
+```
+
+현재 위치가 `/home/linuxuser`라면:
+
+```text
+/home/linuxuser/backup/test.txt
+```
+
+로 해석된다.
+
+### 특수 경로 표현
+
+| 표현 | 의미 |
+|---|---|
+| `/` | 파일시스템 최상위 Root Directory |
+| `.` | 현재 디렉터리 |
+| `..` | 상위 디렉터리 |
+| `~` | 현재 사용자의 Home Directory |
+
+예:
+
+```bash
+cd ~
+cd ..
+cd ./backup
+```
+
+### 왜 `pwd`가 중요한가?
+
+상대경로를 사용하는 명령은 현재 위치에 따라 결과가 달라진다.
+
+```bash
+touch test.txt
+```
+
+이 명령 자체가 정확해도 현재 위치가 잘못되어 있으면 잘못된 디렉터리에 파일이 만들어진다.
+
+---
+
+## 3. 파일과 디렉터리 생성·조작
+
+### `mkdir` — Make Directory
+
+```bash
+mkdir backup
+```
+
+디렉터리를 만든다.
+
+중요:
+
+```bash
+mkdir test.txt
+```
+
+라고 해도 **`test.txt`라는 디렉터리**가 만들어진다. Linux에서 `.txt` 같은 확장자는 파일 형식을 강제로 결정하지 않는다.
+
+### `touch`
+
+```bash
+touch test.txt
+```
+
+파일이 없으면 빈 일반 파일을 만들 수 있고, 이미 있으면 timestamp를 갱신한다.
+
+### `cp` — Copy
+
+```bash
+cp service.conf service.conf.bak
+```
+
+원본을 유지하고 사본을 만든다.
+
+실무에서는 설정 파일 변경 전 백업에 자주 사용한다.
+
+### `mv` — Move
+
+```bash
+mv old.txt new.txt
+```
+
+위치 이동과 이름 변경에 사용한다. 같은 파일시스템 안에서는 rename에 가까운 동작으로 처리될 수 있다.
+
+### `rm` — Remove
+
+```bash
+rm test.txt
+```
+
+파일을 삭제한다. 일반적으로 GUI 휴지통처럼 복구를 전제로 하지 않기 때문에 운영에서는 대상 확인이 중요하다.
+
+기본 안전 흐름:
+
+```text
+pwd
+→ ls
+→ 대상 확인
+→ rm
+→ ls로 검증
+```
+
+---
+
+## 4. 파일 내용 확인
+
+### `cat` — Concatenate
+
+```bash
+cat app.conf
+```
+
+짧은 파일 전체를 한 번에 볼 때 적합하다. 원래 여러 파일을 이어 출력하는 기능도 있지만 실무에서는 짧은 파일 확인에 자주 쓴다.
+
+### `less`
+
+```bash
+less /var/log/syslog
+```
+
+긴 파일을 페이지 단위로 탐색한다.
+
+주요 조작:
+
+```text
+/ERROR → ERROR 검색
+n      → 다음 검색 결과
+q      → 종료
+```
+
+### `head`
+
+```bash
+head -n 10 file
+```
+
+`-n`은 **number of lines**를 지정한다. 앞 10줄을 본다.
+
+### `tail`
+
+```bash
+tail -n 20 app.log
+```
+
+파일 끝 20줄을 본다.
+
+### `tail -f`
+
+```bash
+tail -f app.log
+```
+
+`-f`는 **follow**다. 파일 끝에 새 줄이 추가되면 계속 따라가며 출력한다.
+
+서비스 시작 직후 로그가 어떻게 변하는지 관찰할 때 매우 자주 쓴다.
+
+### `history`
+
+```bash
+history
+```
+
+현재 Shell의 이전 명령 기록을 확인한다. 직전에 어떤 조작을 했는지 추적할 때도 유용하지만, 보안상 민감한 값을 명령행에 직접 넣으면 history에 남을 수 있다는 점도 알아둘 필요가 있다.
+
+---
+
+## 5. Standard Input / Output / Error
+
+Linux 명령어는 기본적으로 세 개의 표준 스트림과 연결된다.
+
+```text
+stdin  → Standard Input  → FD 0
+stdout → Standard Output → FD 1
+stderr → Standard Error  → FD 2
+```
+
+### FD란?
+
+FD(File Descriptor)는 Process가 열린 파일이나 입출력 스트림을 식별하기 위해 사용하는 작은 정수 번호다.
+
+초심자 단계에서는 우선 다음만 정확히 기억하면 된다.
+
+```text
+0 = 입력
+1 = 정상 출력
+2 = 오류 출력
+```
+
+예를 들어 `cat`은 파일 내용을 읽어 stdout으로 보내고, 오류가 발생하면 오류 메시지를 stderr로 보낼 수 있다.
+
+---
+
+## 6. Redirection과 Pipe
+
+### `>` — stdout 덮어쓰기
+
+```bash
+echo hello > file.txt
+```
+
+stdout(FD 1)의 목적지를 터미널 대신 파일로 바꾸고 기존 내용을 덮어쓴다.
+
+### `>>` — stdout 추가
+
+```bash
+echo world >> file.txt
+```
+
+기존 내용을 유지하고 끝에 추가한다.
+
+### `2>` — stderr 리다이렉션
+
+```bash
+command 2> error.log
+```
+
+오류 출력 FD 2만 파일로 보낸다.
+
+### `2>&1`
+
+```bash
+command > output.log 2>&1
+```
+
+먼저 stdout을 `output.log`로 보내고, stderr(FD 2)를 **현재 stdout(FD 1)이 가는 곳과 같은 곳**으로 보낸다.
+
+이 표현은 이후 `nohup`과 로그 처리에서도 다시 사용한다.
+
+### Pipe `|`
+
+```bash
+history | tail -n 5
+```
+
+왼쪽 Process의 stdout을 오른쪽 Process의 stdin에 연결한다.
+
+```text
+history stdout
+     ↓
+    pipe
+     ↓
+tail stdin
+```
+
+즉 파이프는 단순히 화면 결과를 붙이는 것이 아니라 **프로세스 간 데이터 흐름**을 만든다.
+
+---
+
+## 7. 주요 시스템 디렉터리
+
+| 경로 | 핵심 역할 | 운영 관점 |
+|---|---|---|
+| `/etc` | 시스템/서비스 설정 | 설정 오류 점검 |
+| `/var` | 계속 변하는 데이터 | 로그·캐시·서비스 데이터 |
+| `/var/log` | 전통적인 로그 파일 위치 | 장애 원인 분석 |
+| `/home` | 일반 사용자 홈 | 사용자 작업 공간 |
+| `/tmp` | 임시 데이터 | 테스트/임시 파일, 권한 주의 |
+| `/proc` | Kernel/Process 정보를 보여주는 가상 FS | Process/Memory 상태 확인 |
+| `/dev` | Device를 파일처럼 표현 | Disk/Terminal/Device 접근 |
+| `/usr` | 프로그램·라이브러리·공유 데이터 | 설치된 소프트웨어 구성 |
+
+### `/proc`는 일반 디스크 파일인가?
+
+아니다. `/proc`는 **가상 파일시스템**으로 Kernel이 현재 시스템 상태를 파일 형태의 인터페이스로 보여준다.
+
+```bash
+head /proc/meminfo
+```
+
+이 출력은 과거 로그가 아니라 현재 메모리 관련 Kernel 정보를 보여준다.
+
+### `/dev`가 왜 파일인가?
+
+Unix/Linux는 많은 장치를 파일과 비슷한 인터페이스로 다룬다. `/dev/null`, Disk Device, Terminal Device 등이 여기에 나타난다.
+
+---
+
+## 8. 주요 명령어와 옵션
+
+### `ls`
+
+- `-l`: long listing. 권한, 링크 수, Owner, Group, Size, 수정시각 등 표시
+- `-a`: all. `.`으로 시작하는 숨김 항목 포함
+- `-d`: directory 자체를 표시
+- `-h`: human-readable. 크기를 KB/MB/GB 식으로 보기 쉽게 표시. 보통 `-lh`로 사용
+
+```bash
+ls -al
+ls -lh
+ls -ld /tmp
+```
+
+### `cp`
+
+앞으로 자주 볼 옵션:
+
+- `-r` / `-R`: directory를 재귀적으로 복사
+- `-i`: overwrite 전에 확인
+- `-p`: mode/ownership/timestamps 등 보존 시도
+
+현재 단계에서는 기본 복사를 먼저 정확히 이해하고, 운영에서 디렉터리 복사나 metadata 보존이 필요할 때 옵션을 선택한다.
+
+### `rm`
+
+자주 보게 될 옵션:
+
+- `-r`: directory를 재귀적으로 삭제
+- `-f`: 확인 없이 강제 처리
+- `-i`: 삭제 전 확인
+
+> `rm -rf`는 매우 강한 명령이므로 경로를 이해하지 못한 상태에서 습관적으로 사용하면 안 된다.
+
+---
+
+## 9. 🧪 실제 실습
 
 ```bash
 cd ~
@@ -74,331 +458,128 @@ mkdir backup
 cp test1.txt backup/
 mv test2.txt config.txt
 pwd
-ls
-ls backup
+ls -al
 ```
 
-최종 구조는 다음과 같다.
-
-```text
-~/linux-test/
-├── backup/
-│   └── test1.txt
-├── config.txt
-└── test1.txt
-```
-
-`cp test1.txt backup/`은 원본을 남겨두고 `backup/`에 복사본을 만들었다. `mv test2.txt config.txt`는 같은 디렉터리 안에서 파일 이름을 변경했다.
-
-## 발생한 문제
-
-처음에는 홈 디렉터리에서 `linux-test`를 만든 뒤 그 안으로 이동하지 않고 파일을 생성했다.
+로그 실습:
 
 ```bash
-mkdir linux-test
-touch test1.txt test2.txt
-```
-
-명령어 자체는 정상 실행됐지만, `test1.txt`와 `test2.txt`가 의도한 `linux-test` 안이 아니라 홈 디렉터리에 만들어졌다.
-
-## 원인과 해결
-
-원인은 파일을 만들기 전에 현재 위치를 확인하지 않은 것이었다. `pwd`와 `ls`로 위치와 파일을 확인한 뒤 잘못 만든 파일을 삭제하고 올바른 위치에서 다시 생성했다.
-
-```bash
-pwd
-ls
-rm test1.txt test2.txt
-cd linux-test
-touch test1.txt test2.txt
-ls
-```
-
-이 경험을 통해 명령어가 정확해도 현재 디렉터리가 다르면 전혀 다른 결과가 생긴다는 것을 확인했다.
-
-## 파일 내용 확인과 출력
-
-파일을 읽거나 로그를 확인하기 위해 다음 명령을 실습했다.
-
-| 명령어 | 용도 |
-| --- | --- |
-| `cat` | 짧은 파일 전체 내용 출력 |
-| `less` | 긴 파일을 페이지 단위로 확인하고 검색 |
-| `head` | 파일 앞부분 확인 |
-| `tail` | 파일 마지막 부분 확인 |
-| `tail -f` | 파일에 새로 추가되는 내용을 실시간 확인 |
-| `echo` | 문자열 출력 또는 파일에 내용 기록 |
-| `history` | 이전에 실행한 명령어 확인 |
-
-실습용 로그 파일을 직접 만들었다.
-
-```bash
-cd ~/linux-test
 echo "INFO server started" > server.log
 echo "INFO user connected" >> server.log
 echo "WARNING disk usage 80%" >> server.log
 echo "ERROR database connection failed" >> server.log
-echo "INFO retry connection" >> server.log
 ```
 
-내용을 여러 방식으로 확인했다.
+확인:
 
 ```bash
 cat server.log
 head -n 2 server.log
 tail -n 2 server.log
 less server.log
-history
 ```
 
-`less`에서는 `/ERROR`로 원하는 문자열을 검색하고 `q`로 종료하는 방법도 확인했다.
+---
 
-## `>`와 `>>` 차이
+## 10. ⚠️ 헷갈리기 쉬운 부분
 
-리다이렉션 기호의 동작 차이를 실습했다.
+> ⚠️ 파일 이름 확장자가 파일 종류를 결정하지 않는다. `mkdir a.txt`는 디렉터리다.
+
+> ⚠️ `>`와 `>>`는 다르다. `>`는 기존 내용을 덮어쓸 수 있다.
+
+> ⚠️ `|`는 파일 저장 기능이 아니다. 왼쪽 Process의 stdout을 오른쪽 Process의 stdin으로 연결한다.
+
+> ⚠️ 정확한 명령어라도 현재 디렉터리가 틀리면 잘못된 대상을 변경할 수 있다.
+
+---
+
+## 11. 🔧 Troubleshooting
+
+### 증상: 파일이 예상 위치에 없음
+
+확인:
 
 ```bash
-echo "hello" > test.txt
-echo "world" >> test.txt
-```
-
-- `>`: 기존 파일 내용을 **덮어쓰고** 새 내용을 기록
-- `>>`: 기존 내용은 유지하고 파일 마지막에 **추가**
-
-운영 환경에서는 `>`를 잘못 사용하면 설정 파일이나 로그 내용을 잃을 수 있으므로 특히 주의해야 한다.
-
-## 장애 상황으로 이해한 내용
-
-예를 들어 원래 설정 파일에 다음 내용이 있다고 가정한다.
-
-```text
-worker_processes auto;
-events {}
-```
-
-이 상태에서 아래 명령을 실행하면,
-
-```bash
-echo "test" > nginx.conf
-```
-
-기존 설정은 사라지고 `test`만 남게 된다.
-
-원인은 `>`가 append가 아니라 overwrite 동작을 하기 때문이다.
-
-작업 전에는 파일 내용을 먼저 확인하고, 중요한 설정 파일이라면 백업본을 만든 뒤 수정하는 습관이 필요하다.
-
-```bash
-cat nginx.conf
-cp nginx.conf nginx.conf.bak
-```
-
-실제 서비스 설정 변경에서는 앞으로 다음 절차를 기본으로 사용한다.
-
-```text
-내용 확인 → 백업 → 수정 → 설정 검증 → 서비스 반영 → 로그 확인
-```
-
-## 배운 점
-
-- Linux 작업은 항상 현재 위치를 기준으로 실행된다.
-- 파일 조작 전 `pwd`와 `ls`로 위치와 대상을 먼저 확인해야 한다.
-- `cp`는 원본을 남기고, `mv`는 원본의 위치나 이름을 바꾼다.
-- 절대경로는 위치와 관계없이 같은 대상을 가리키고, 상대경로는 현재 위치에 따라 대상이 달라진다.
-- 짧은 파일은 `cat`, 긴 파일은 `less`, 최신 로그는 `tail`과 `tail -f`가 유용하다.
-- `>`는 덮어쓰기, `>>`는 추가이므로 설정 파일 작업 전에 반드시 구분해야 한다.
-- `rm`, `mv`, `cp`, 리다이렉션처럼 파일에 영향을 주는 작업은 실행 전후 확인이 중요하다.
-
-앞으로 다음 순서를 기본 작업 습관으로 사용한다.
-
-```text
-현재 위치 확인 → 대상/내용 확인 → 필요 시 백업 → 명령 실행 → 결과 재확인
-```
-
-## Linux 파일시스템 핵심 디렉터리
-
-Linux는 드라이브별로 시작하는 구조가 아니라, 최상위 디렉터리인 `/` 아래에 모든 파일과 디렉터리가 연결되는 구조다.
-
-```text
-/
-├── etc
-├── var
-├── home
-├── tmp
-├── proc
-├── dev
-└── usr
-```
-
-서버 운영 관점에서 각 디렉터리의 역할을 다음과 같이 정리했다.
-
-| 디렉터리 | 역할 | 서버 운영 관점 |
-| --- | --- | --- |
-| `/` | Linux 파일시스템의 최상위 디렉터리 | 모든 경로의 시작점 |
-| `/etc` | 시스템과 서비스의 설정 파일 | 서비스 설정 오류를 확인할 때 우선 확인 |
-| `/var` | 실행 중 계속 변경되는 데이터 | 로그, 캐시, 서비스 데이터 등이 저장됨 |
-| `/var/log` | 시스템과 서비스의 로그 | 장애 원인과 에러 메시지를 찾을 때 확인 |
-| `/home` | 일반 사용자의 홈 디렉터리 | 사용자별 파일과 작업 공간이 저장됨 |
-| `/tmp` | 임시 파일 저장 공간 | 테스트나 짧게 사용할 파일을 둘 때 사용 |
-| `/proc` | 현재 시스템과 프로세스 정보를 보여주는 가상 파일시스템 | 메모리, CPU, 실행 중인 프로세스 상태 확인 |
-| `/dev` | 디스크, 터미널 등 장치를 파일처럼 표현 | 장치와 관련된 문제를 확인할 때 사용 |
-| `/usr` | 프로그램, 명령어, 라이브러리, 공유 데이터 | 설치된 프로그램 구성 요소가 주로 위치 |
-
-특히 서버 운영에서 먼저 기억할 디렉터리는 다음 다섯 개다.
-
-```text
-/etc      = 설정
-/var/log  = 로그
-/home     = 사용자 홈
-/tmp      = 임시 파일
-/proc     = 현재 시스템/프로세스 정보
-```
-
-## 직접 실습 - 루트 디렉터리와 설정 확인
-
-먼저 루트 디렉터리로 이동한 뒤 현재 위치와 디렉터리 목록을 확인했다.
-
-```bash
-cd /
 pwd
-ls
+ls -al
 ```
 
-`pwd` 결과가 `/`로 나오면 Linux 파일시스템의 최상위에 있는 것이다. `ls` 결과에서는 `etc`, `var`, `home`, `tmp`, `proc`, `dev`, `usr` 같은 핵심 디렉터리를 직접 확인할 수 있다.
-
-서버 이름이 저장된 설정 파일도 확인했다.
-
-```bash
-cat /etc/hostname
-```
-
-이 실습을 통해 `/etc`에는 시스템과 서비스의 설정 파일이 들어 있다는 것을 확인했다. 서비스가 정상적으로 실행되지 않거나 예상과 다르게 동작한다면 `/etc` 아래의 관련 설정 파일을 살펴봐야 한다.
-
-설치된 서비스에 따라 다음과 같은 경로가 존재할 수 있다.
+원인:
 
 ```text
-/etc/ssh/sshd_config
-/etc/nginx/nginx.conf
-/etc/mysql/
+명령은 맞았지만 현재 작업 디렉터리를 잘못 이해함
 ```
 
-서비스를 설치하지 않았다면 해당 디렉터리나 파일이 없을 수도 있다.
-
-## 직접 실습 - 현재 메모리 정보 확인
-
-`/proc`에서 현재 시스템의 메모리 정보를 확인했다.
-
-```bash
-head /proc/meminfo
-```
-
-`/proc/meminfo`에는 전체 메모리, 사용 가능한 메모리, 캐시 등의 현재 상태가 표시된다. 일반 파일처럼 읽을 수 있지만 디스크에 저장된 문서가 아니라, 커널이 현재 시스템 정보를 보여주는 가상 파일이다.
-
-> `/proc`는 과거 기록을 저장하는 로그 디렉터리가 아니라 현재 시스템과 프로세스 상태를 확인하는 곳이다.
-
-## 직접 실습 - `/tmp` 임시 파일 생성과 삭제
-
-`/tmp`로 이동해 실습용 임시 파일을 만들고, 확인한 뒤 삭제했다.
-
-```bash
-cd /tmp
-pwd
-touch linux-practice.tmp
-ls -l linux-practice.tmp
-rm linux-practice.tmp
-ls -l linux-practice.tmp
-```
-
-마지막 `ls`에서는 파일을 삭제했기 때문에 `No such file or directory`가 나타날 수 있다. 이 메시지는 삭제가 정상적으로 반영됐는지 확인하는 결과로 볼 수 있다.
-
-`/tmp`는 임시 작업에 편리하지만, 시스템 재부팅이나 정리 정책에 따라 파일이 삭제될 수 있다. 장기간 보관할 파일이나 중요한 백업을 저장하는 위치로 사용하면 안 된다.
-
-## 파이프 `|`로 명령 연결하기
-
-파이프 `|`는 왼쪽 명령의 출력 결과를 오른쪽 명령의 입력으로 전달한다.
-
-```bash
-ls | head
-```
-
-이 명령은 다음 순서로 동작한다.
+조치:
 
 ```text
-ls로 목록 출력
-→ 출력 결과를 head에 전달
-→ 목록의 앞부분만 화면에 표시
+현재 위치 확인
+→ 잘못 생성된 대상 확인
+→ 필요한 경우 안전하게 제거/이동
+→ 올바른 위치로 cd
+→ 다시 실행
+→ 검증
 ```
 
-파일과 디렉터리가 많은 위치에서 전체 목록을 한 번에 출력하지 않고 앞부분만 빠르게 확인할 때 유용하다. 앞으로 `grep`, `sort`, `wc` 같은 명령어를 배우면 파이프로 여러 명령을 연결해 필요한 결과만 추려낼 수 있다.
+### 증상: 설정 파일 내용이 사라짐
 
-## 서비스 장애 상황에 적용하기
+가능한 원인:
 
-서비스 장애가 발생했을 때는 무작정 파일을 수정하기보다 다음 순서로 원인을 좁혀간다.
+```bash
+echo value > config.conf
+```
+
+`>`가 기존 내용을 overwrite했을 수 있다.
+
+예방:
 
 ```text
-상태 확인 → 로그 확인 → 설정 확인 → 원인 추적
+cat/less로 현재 내용 확인
+→ cp로 백업
+→ 수정
+→ diff/grep으로 검증
 ```
 
-예를 들어 Nginx가 정상적으로 동작하지 않는다면 다음과 같이 확인할 수 있다.
+---
 
-### 1. 서비스 상태 확인
+## 12. 💼 실무 포인트
 
-```bash
-systemctl status nginx
-```
-
-서비스가 실행 중인지, 시작에 실패했는지, 화면에 바로 보이는 오류 메시지가 있는지 확인한다.
-
-### 2. `/var/log`에서 로그 확인
-
-```bash
-ls -l /var/log
-ls -l /var/log/nginx
-tail /var/log/nginx/error.log
-```
-
-Nginx가 설치되어 있고 기본 로그 경로를 사용한다면 `error.log`에서 설정 문법 오류, 포트 충돌, 파일 접근 실패 같은 단서를 찾을 수 있다. 권한이나 환경에 따라 일부 로그는 일반 사용자로 읽지 못할 수도 있다.
-
-### 3. `/etc`에서 설정 확인
-
-```bash
-ls -l /etc/nginx
-cat /etc/nginx/nginx.conf
-```
-
-로그에서 설정 문제로 보이는 메시지를 찾았다면 `/etc/nginx` 아래의 설정 파일을 확인한다. 내용을 수정하기 전에는 원본을 먼저 읽고 필요하면 백업해야 한다.
-
-```bash
-cp /etc/nginx/nginx.conf ~/nginx.conf.bak
-```
-
-실제 운영 환경에서는 설정을 수정하기 전에 `nginx -t`로 문법을 검증하고, 변경 후 서비스 상태와 로그를 다시 확인하는 습관이 필요하다.
-
-```bash
-nginx -t
-systemctl status nginx
-tail /var/log/nginx/error.log
-```
-
-환경에 따라 관리자 권한이 필요한 명령은 `sudo`와 함께 실행해야 한다.
-
-## 파일시스템 실습에서 배운 점
-
-- Linux의 모든 경로는 최상위 디렉터리 `/`에서 시작한다.
-- `/etc`는 설정, `/var/log`는 로그를 확인하는 핵심 위치다.
-- `/home`은 사용자 작업 공간이고 `/tmp`는 임시 파일을 위한 공간이다.
-- `/proc`에서는 현재 시스템과 프로세스 정보를 파일처럼 읽을 수 있다.
-- `/dev`는 장치, `/usr`는 프로그램과 라이브러리, `/var`는 계속 변경되는 데이터를 담는다.
-- 파이프 `|`는 왼쪽 명령의 출력을 오른쪽 명령으로 전달한다.
-- 서비스 장애 시 먼저 상태를 보고, 로그와 설정을 차례로 확인하면서 원인을 좁혀야 한다.
-- Nginx 장애라면 우선 `/var/log/nginx`의 로그와 `/etc/nginx`의 설정을 확인한다.
-
-앞으로 서비스 장애를 조사할 때 다음 흐름을 기본 사고방식으로 사용한다.
+파일 작업은 다음 습관으로 연결한다.
 
 ```text
-서비스 이상
-→ 상태 확인
-→ /var/log에서 로그 확인
-→ /etc에서 설정 확인
-→ 발견한 단서를 바탕으로 원인 추적
+whoami / hostname
+→ pwd
+→ ls -l / ls -ld
+→ 대상 내용 확인
+→ 필요 시 백업
+→ 명령 실행
+→ 결과 검증
 ```
+
+이후 서버 운영에서 설정 파일, 로그, 배포 파일, 백업 파일을 다룰 때 이 기본기가 그대로 사용된다.
+
+---
+
+## 13. ✅ 핵심 정리
+
+- Shell은 명령을 해석하고 Program 실행을 요청한다.
+- Command / Option / Argument는 서로 역할이 다르다.
+- 절대경로는 `/`부터, 상대경로는 현재 작업 디렉터리부터 해석한다.
+- `mkdir`는 directory, `touch`는 일반 파일 생성에 자주 사용한다.
+- `cp`는 복사, `mv`는 이동/rename, `rm`은 삭제다.
+- stdin=0, stdout=1, stderr=2다.
+- `>`는 stdout overwrite, `>>`는 append, `|`는 프로세스 간 데이터 연결이다.
+- `/etc`는 설정, `/var/log`는 로그, `/proc`는 Kernel/Process 정보를 제공하는 가상 파일시스템이다.
+
+---
+
+## 14. 🧠 복습 문제
+
+1. Command, Option, Argument의 차이를 예시로 설명해보라.
+2. 절대경로와 상대경로는 무엇이 다른가?
+3. `mkdir test.txt`는 어떤 타입을 만드는가?
+4. stdin/stdout/stderr와 FD 0/1/2를 연결해보라.
+5. `>`와 `>>`의 차이는 무엇인가?
+6. `command > app.log 2>&1`을 해석해보라.
+7. Pipe `|`는 내부적으로 어떤 두 스트림을 연결하는가?
+8. `/proc`와 `/var/log`는 어떤 점이 다른가?

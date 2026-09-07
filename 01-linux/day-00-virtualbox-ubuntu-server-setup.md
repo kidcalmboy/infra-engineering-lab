@@ -1,222 +1,375 @@
-# Day 0 - VirtualBox와 Ubuntu Server 실습 환경 구축
+# Day 0 — VirtualBox와 Ubuntu Server 실습 환경 구축
 
-## 구축 목표
+> Windows PC 위에 Ubuntu Server VM을 만들고 NAT 포트 포워딩과 SSH를 구성했다. 단순 설치 절차뿐 아니라 **Host/Guest/Hypervisor, OS와 Kernel, IP/Port, NAT, SSH Client/Server, Listen**이 서로 어떻게 연결되는지 이해하는 것을 목표로 한다.
 
-Windows PC 안에 Ubuntu Server 가상 머신을 만들고, Windows PowerShell에서 SSH로 접속할 수 있는 Linux 실습 환경을 구성한다.
+## 📌 이번에 배운 내용
 
-```text
-Windows PC
-  └─ VirtualBox
-      └─ Ubuntu Server VM
-          └─ OpenSSH Server
-```
+- Operating System, Kernel, Linux Distribution
+- Host OS / Guest OS / VM / Hypervisor
+- VirtualBox가 하는 일
+- CPU / Memory / Disk / Network를 VM에 할당하는 이유
+- Ubuntu Server와 Ubuntu Desktop
+- IP Address / Port / Socket의 기초
+- NAT와 Port Forwarding
+- `127.0.0.1` Loopback
+- SSH Client / SSH Server / `sshd`
+- `ssh -p`, `ip addr`, `systemctl status ssh`
+- SSH 접속 장애를 단계별로 확인하는 방법
 
-## 사용 환경
+## 📚 목차
 
-- Host OS: Windows
-- 가상화 도구: Oracle VirtualBox
-- Guest OS: Ubuntu Server LTS
-- 네트워크 방식: NAT
-- 원격 접속: SSH
+1. OS, Kernel, Linux, Ubuntu
+2. 가상화와 VM
+3. VM 자원
+4. 네트워크의 IP와 Port
+5. NAT와 Port Forwarding
+6. SSH
+7. 주요 명령어와 옵션
+8. 실제 실습
+9. 헷갈리기 쉬운 부분
+10. Troubleshooting
+11. 실무 포인트
+12. 핵심 정리
+13. 복습 문제
 
-## 가상화 환경이란
+## ⚡ 명령어 빠른 복습
 
-가상화는 한 대의 물리 컴퓨터 안에 소프트웨어로 만든 별도의 컴퓨터를 실행하는 기술이다. 이번 실습에서는 실제 Windows PC의 CPU, 메모리, 디스크 일부를 VirtualBox가 가상 하드웨어처럼 Ubuntu Server에 제공한다.
+| 명령어 | 옵션/인자 | 의미 | 실무 사용 |
+|---|---|---|---|
+| `whoami` | 없음 | 현재 명령을 실행하는 사용자 이름 확인 | 서버/계정 확인 |
+| `hostname` | 없음 | 현재 호스트 이름 확인 | 여러 서버 작업 시 대상 서버 확인 |
+| `pwd` | 없음 | 현재 작업 디렉터리 확인 | 잘못된 경로에서 작업 방지 |
+| `ip addr` | `addr` = address 객체 | 인터페이스와 IP 주소 확인 | 네트워크 점검 |
+| `systemctl status ssh` | `status` = Unit 상태 조회 | SSH 서비스 상태 확인 | 접속 장애 분석 |
+| `systemctl start ssh` | `start` = 지금 시작 | SSH 서비스 시작 | 정지된 서비스 기동 |
+| `systemctl enable ssh` | `enable` = 부팅 자동 시작 설정 | 다음 부팅에도 자동 시작 | 서버 운영 설정 |
+| `ssh -p 2222 linuxuser@127.0.0.1` | `-p` = port | TCP 2222번으로 SSH 접속 | 비기본 포트 접속 |
 
-```text
-물리 컴퓨터
-├── Windows: Host OS
-└── VirtualBox: 가상 머신을 생성하고 실행하는 프로그램
-    └── Ubuntu Server: Guest OS
-```
+---
 
-- **Host OS**: 실제 컴퓨터에서 실행되는 운영체제이며 이번 환경에서는 Windows이다.
-- **Guest OS**: 가상 머신 안에 설치한 운영체제이며 이번 환경에서는 Ubuntu Server이다.
-- **VM**: Virtual Machine의 약자로, 가상 CPU·메모리·디스크·네트워크를 가진 소프트웨어 컴퓨터이다.
-- **Hypervisor**: 물리 자원을 가상 머신에 나누어 주고 VM 실행을 관리하는 계층이다. VirtualBox는 Windows 위에서 동작하는 가상화 프로그램이다.
+## 1. OS, Kernel, Linux, Ubuntu
 
-여기서 말하는 가상 환경은 Python 패키지를 분리하는 `venv`가 아니라, 운영체제 전체를 실행하는 **가상 머신 환경**이다. Docker 컨테이너도 격리된 환경을 제공하지만 Host의 커널을 공유한다는 점에서 별도의 운영체제를 실행하는 VM과 다르다.
+### 운영체제(OS)란?
 
-## 가상 머신으로 실습하는 이유
+운영체제는 하드웨어 자원을 관리하고 프로그램이 실행될 수 있는 환경을 제공하는 시스템 소프트웨어다. CPU, Memory, Disk, Device, Process, File System 등을 직접 또는 간접적으로 관리한다.
 
-Ubuntu를 실제 PC에 바로 설치하지 않고 VM을 사용한 이유는 다음과 같다.
+### Kernel이란?
 
-- Windows를 유지한 상태에서 Linux 서버를 함께 실행할 수 있다.
-- Linux 설정을 잘못하거나 파일을 삭제해도 Host OS에 미치는 영향을 줄일 수 있다.
-- 문제가 생기면 VM을 다시 만들 수 있어 설치와 장애 복구를 반복해서 연습하기 쉽다.
-- CPU, 메모리, 디스크, 네트워크를 독립된 서버처럼 설정할 수 있다.
-- 이후 AWS EC2 같은 클라우드 가상 서버를 이해하는 기초가 된다.
-
-완전히 실제 서버와 같지는 않지만, Linux 명령어, 사용자와 권한, 서비스, 네트워크, 로그, SSH를 학습하기에는 충분한 환경이다.
-
-## VirtualBox와 Ubuntu Server 준비
-
-VirtualBox는 Windows 안에 별도의 가상 컴퓨터를 만들기 위해 설치했다. Ubuntu는 GUI 중심의 Desktop 버전이 아닌 CLI 중심의 Server LTS ISO를 사용했다.
-
-가상 머신은 다음 사양으로 구성했다.
-
-| 항목 | 설정값 |
-| --- | --- |
-| CPU | 2 Core |
-| Memory | 4 GB |
-| Disk | 30 GB, 동적 할당 |
-| Network | NAT |
-
-PC 메모리가 부족하면 VM 메모리는 2 GB까지 낮출 수 있지만, 이후 Nginx와 간단한 데이터베이스 실습까지 고려해 4 GB를 선택했다.
-
-### 설정값을 선택한 이유
-
-- **CPU 2 Core**: 기본 Linux 명령과 서버 서비스를 실행하기에 충분하면서 Windows가 사용할 CPU도 남길 수 있다.
-- **Memory 4 GB**: Ubuntu Server와 이후 설치할 Nginx, 모니터링 도구, 간단한 데이터베이스를 여유 있게 실행하기 위한 값이다.
-- **Disk 30 GB**: 운영체제, 패키지, 로그, 실습 파일을 저장할 공간을 확보하되 Host 디스크를 과도하게 사용하지 않는 크기이다.
-- **동적 할당**: 처음부터 Windows 디스크의 30 GB를 모두 차지하지 않고, VM에서 실제로 사용한 양에 따라 가상 디스크 파일이 커진다.
-- **NAT**: 별도의 공유기 설정 없이 인터넷을 사용할 수 있고, VM을 외부 네트워크에 직접 노출하지 않아 초기 실습에 단순하고 안전하다.
-
-VM에 CPU나 메모리를 너무 많이 할당하면 Windows가 느려질 수 있다. 반대로 너무 적게 할당하면 Ubuntu의 설치나 서비스 실행이 느려질 수 있으므로 Host와 Guest가 함께 사용할 수 있도록 균형을 잡아야 한다.
-
-## Ubuntu Server LTS를 선택한 이유
-
-Ubuntu Desktop 대신 Server 버전을 선택한 이유는 실제 서버처럼 GUI에 의존하지 않고 CLI로 운영하는 연습을 하기 위해서다. Server 버전은 기본 설치가 비교적 가볍고, 서비스·네트워크·로그를 직접 확인하는 학습에 적합하다.
-
-LTS는 Long Term Support의 약자로 장기간 보안 업데이트와 유지보수를 제공하는 버전이다. 운영 환경에서는 새 기능이 빠르게 추가되는 버전보다 안정적으로 지원되는 LTS를 사용하는 경우가 많아 실습 환경에도 적합하다.
-
-## Ubuntu Server 설치
-
-VirtualBox의 광학 드라이브에 Ubuntu Server LTS ISO를 연결하고 VM을 부팅했다. 설치 과정에서는 불필요한 설정을 늘리지 않고 기본값을 중심으로 진행했다.
-
-- 언어: English
-- 키보드: English (US)
-- 네트워크: DHCP 자동 설정
-- Proxy: 사용하지 않음
-- Mirror: 기본값
-- Storage: 자동 파티션과 기본 LVM 구성
-- 추가 패키지: 선택하지 않음
-- OpenSSH Server: 설치
-
-처음에는 DHCP를 사용해 VirtualBox가 IP 주소를 자동으로 할당하게 했다. 고정 IP 설정까지 동시에 진행하면 설치 문제와 네트워크 설정 문제를 구분하기 어려우므로, 먼저 자동 설정으로 정상 통신을 확인한 뒤 네트워크 학습 단계에서 고정 IP를 다루기로 했다.
-
-OpenSSH Server는 Windows에서 Ubuntu의 터미널에 원격 접속하기 위해 설치했다. 가상 머신 화면에서 직접 명령을 입력할 수도 있지만, SSH를 사용하면 실제 원격 Linux 서버에 접속하는 방식으로 실습할 수 있다.
-
-실습 계정과 서버 이름은 다음과 같이 구성했다.
+Kernel은 운영체제의 핵심 부분으로, 사용자 프로그램과 하드웨어 사이에서 자원을 관리한다.
 
 ```text
-username: linuxuser
-hostname: linux-lab
+Application / Shell / Utilities
+          ↓
+       Kernel
+          ↓
+CPU / Memory / Disk / Network Device
 ```
 
-일반 사용자로 로그인하고, 관리자 권한이 필요한 작업에서만 `sudo`를 사용하도록 했다.
+### Linux와 Ubuntu의 관계
 
-## 설치 중 발생한 문제
-
-처음 VM을 실행했을 때 부팅 가능한 운영체제가 없다는 화면이 나타났다. 원인은 Ubuntu Server ISO가 가상 광학 드라이브에 연결되지 않은 것이었다.
-
-VirtualBox에서 다음 위치에 ISO를 연결한 뒤 다시 부팅했다.
+Linux는 엄밀히 말하면 **Linux Kernel**을 뜻한다. Ubuntu는 Linux Kernel에 패키지 관리자, 사용자 공간 도구, 설치 프로그램 등을 결합한 **Linux Distribution(배포판)**이다.
 
 ```text
-VM 설정 → 저장소 → 광학 드라이브 → Ubuntu Server ISO 선택
+Linux Kernel
+├─ Ubuntu
+├─ Debian
+├─ Rocky Linux
+└─ Fedora
 ```
 
-설치 실패가 아니라 VM에 설치 디스크가 연결되지 않은 상태였으며, ISO를 마운트한 뒤 정상적으로 설치를 진행했다.
+즉 `Windows도 OS고 Linux도 OS냐?`라는 질문에는 실무적으로는 Linux를 OS 계열로 부르지만, 더 정확히는 **Linux Kernel을 중심으로 한 배포판들이 실제 사용되는 운영체제**라고 이해하면 된다.
 
-## 설치 결과 확인
+---
 
-Ubuntu Server 로그인 후 다음 명령을 실행했다.
+## 2. 가상화와 VM
+
+### Host와 Guest
+
+- **Host**: 실제 물리 컴퓨터와 그 위에서 실행되는 기본 OS. 현재 Windows PC.
+- **Guest**: VM 안에서 실행되는 OS. 현재 Ubuntu Server.
+- **VM(Virtual Machine)**: 가상 CPU, RAM, Disk, NIC를 가진 소프트웨어 컴퓨터.
+- **Hypervisor**: 물리 자원을 VM에 제공하고 여러 VM을 격리·실행하는 계층.
+
+현재 구조:
+
+```text
+Physical PC
+└─ Windows (Host OS)
+   └─ VirtualBox (Hypervisor)
+      └─ Ubuntu Server VM (Guest OS)
+         └─ Linux Kernel
+```
+
+### VM을 쓰는 이유
+
+서버 운영 학습에서는 OS 설치, 네트워크 변경, 사용자/권한 실습, 서비스 중지 같은 위험한 작업이 많다. VM은 Host와 격리된 환경을 제공하므로 반복 실습과 복구가 쉽다.
+
+### VM과 Container 차이
+
+VM은 Guest OS와 별도 Kernel을 실행한다. 일반적인 Container는 Host Kernel을 공유하고 Process를 격리한다. 현재는 Linux 운영체제 자체를 학습하므로 VM이 적합하다.
+
+---
+
+## 3. VM 자원
+
+VM에 CPU, RAM, Disk를 할당한다는 것은 물리 자원의 일부를 Guest가 사용할 수 있게 하는 것이다.
+
+| 자원 | 의미 | 부족하면 |
+|---|---|---|
+| vCPU | Guest가 사용할 CPU 실행 자원 | 명령/서비스 처리 지연 |
+| RAM | 실행 중 프로세스와 Kernel이 사용하는 메모리 | Swap 증가, OOM 위험 |
+| Virtual Disk | OS·패키지·로그·파일 저장 | Disk Full 장애 |
+| Virtual NIC | VM의 네트워크 인터페이스 | 외부/Host 통신 불가 |
+
+동적 할당 디스크는 최대 크기를 미리 정하지만 Host 파일은 실제 사용량에 따라 커질 수 있다.
+
+---
+
+## 4. IP Address와 Port
+
+### IP Address
+
+네트워크에서 Host/Interface를 식별하기 위한 주소다. 한 서버에 여러 NIC와 여러 IP가 존재할 수도 있다.
+
+### Port
+
+하나의 IP 안에서 어떤 Application/Service로 연결할지 구분하는 번호다. TCP/UDP Port는 0~65535 범위다.
+
+```text
+IP Address → 어느 Host인가?
+Port       → 그 Host의 어느 Service인가?
+```
+
+예:
+
+```text
+192.168.0.10:22
+```
+
+`192.168.0.10`은 서버 주소, `22`는 SSH Server가 사용하는 대표 Port다.
+
+### Listen이란?
+
+서버 프로그램이 특정 IP/Port에서 연결 요청을 기다리는 상태를 흔히 **listen 중**이라고 한다. 서비스 프로세스가 실행 중이어도 해당 Port에서 Listen하지 않는다면 Client 접속은 실패할 수 있다.
+
+---
+
+## 5. NAT와 Port Forwarding
+
+### NAT
+
+NAT(Network Address Translation)는 한 네트워크의 주소를 다른 주소 체계로 변환하는 기술이다. VirtualBox NAT에서는 Guest가 Host를 통해 외부로 나가는 통신이 가능하다.
+
+### 왜 Port Forwarding이 필요한가?
+
+NAT 뒤의 Guest는 Host 외부에서 바로 접근하기 어렵다. 그래서 Host의 특정 Port로 들어온 연결을 Guest의 특정 Port로 전달한다.
+
+현재 구성:
+
+```text
+Windows SSH Client
+        ↓
+127.0.0.1:2222
+        ↓
+VirtualBox NAT Port Forwarding
+        ↓
+Ubuntu Guest:22
+        ↓
+OpenSSH Server
+```
+
+`Host Port 2222`와 `Guest Port 22`는 같을 필요가 없다.
+
+### `127.0.0.1`
+
+IPv4 Loopback 주소다. 현재 Host 자기 자신을 가리킨다. Host IP를 `127.0.0.1`로 두면 일반적으로 같은 Windows PC에서만 해당 포워딩에 접근하도록 제한하는 효과가 있다.
+
+---
+
+## 6. SSH
+
+### SSH란?
+
+SSH(Secure Shell)는 암호화된 네트워크 연결을 통해 원격 시스템에서 Shell을 사용할 수 있게 하는 Protocol이다.
+
+```text
+SSH Client
+→ TCP Connection
+→ SSH Server(sshd)
+→ Authentication
+→ Remote Shell
+```
+
+현재 Windows의 `ssh` 명령은 Client이고 Ubuntu의 OpenSSH Server가 Server다.
+
+### SSH와 Shell은 같은 것인가?
+
+아니다. SSH는 **원격 연결 Protocol**이고 Bash는 접속 후 명령을 해석하는 **Shell**이다.
+
+---
+
+## 7. 주요 명령어와 옵션
+
+### `ip addr`
+
+`ip`는 Linux 네트워크 객체를 조회·관리하는 명령이다. `addr`는 address 객체를 뜻한다.
+
+```bash
+ip addr
+```
+
+주요하게 볼 것:
+
+```text
+인터페이스 이름
+state UP/DOWN
+inet IPv4주소/Prefix
+```
+
+### `ssh -p`
+
+```bash
+ssh -p 2222 linuxuser@127.0.0.1
+```
+
+구조:
+
+```text
+ssh             → SSH Client 실행
+-p 2222         → 접속할 TCP Port 지정
+linuxuser       → 원격 로그인 사용자
+127.0.0.1       → 접속할 Host 주소
+```
+
+`-p`는 **port** 옵션이다. 대문자 `-P`와 혼동하지 않는다. OpenSSH `ssh`에서 접속 Port는 소문자 `-p`다.
+
+### `systemctl status/start/enable`
+
+- `status`: 현재 Unit 상태 확인
+- `start`: 현재 세션에서 서비스 시작
+- `enable`: 부팅 시 자동 시작 연결 생성
+
+```text
+start ≠ enable
+```
+
+실행 중인지와 부팅 자동 시작 여부는 별개의 상태다.
+
+---
+
+## 8. 🧪 실제 실습
 
 ```bash
 whoami
 hostname
 pwd
 ip addr
-```
-
-각 명령으로 다음을 확인했다.
-
-- `whoami`: `linuxuser` 계정으로 로그인했는지 확인
-- `hostname`: 현재 서버 이름이 `linux-lab`인지 확인
-- `pwd`: 로그인 시작 위치가 홈 디렉터리인지 확인
-- `ip addr`: 네트워크 인터페이스에 IP 주소가 할당됐는지 확인
-
-## SSH Server 확인
-
-설치 과정에서 선택한 OpenSSH Server가 실행 중인지 확인했다.
-
-```bash
 sudo systemctl status ssh
 ```
 
-출력에서 아래 상태를 확인했다.
+VirtualBox NAT Port Forwarding:
 
 ```text
-Active: active (running)
+Host IP   : 127.0.0.1
+Host Port : 2222
+Guest Port: 22
+Protocol  : TCP
 ```
 
-SSH 서버는 Ubuntu의 `22`번 포트에서 원격 접속 요청을 기다린다.
+Windows PowerShell:
 
-## NAT와 포트 포워딩 설정
-
-NAT 환경에서 Ubuntu VM은 Windows를 통해 외부 네트워크에 연결할 수 있다. 반대로 Windows에서 VM의 SSH 서버로 접속하기 위해 VirtualBox에 포트 포워딩 규칙을 추가했다.
-
-NAT는 내부의 Ubuntu 주소와 외부 통신에 사용하는 Windows 쪽 주소를 변환한다. VM에서 인터넷으로 나가는 연결은 쉽게 만들 수 있지만, 외부에서 VM으로 먼저 들어오는 연결은 기본적으로 제한된다. 따라서 SSH 요청만 명시적으로 전달하도록 포트 포워딩을 설정했다.
-
-```text
-VM 설정 → 네트워크 → 어댑터 1 → NAT
-→ 고급 → 포트 포워딩
-```
-
-| 항목 | 설정값 |
-| --- | --- |
-| 이름 | SSH |
-| 프로토콜 | TCP |
-| 호스트 IP | 127.0.0.1 |
-| 호스트 포트 | 2222 |
-| 게스트 IP | 비워둠 |
-| 게스트 포트 | 22 |
-
-호스트 포트에 `22`가 아닌 `2222`를 사용한 이유는 Windows에서 이미 사용 중인 포트와의 충돌을 피하고 Host 포트와 Guest 포트가 서로 달라도 연결할 수 있음을 확인하기 위해서다. VM을 추가하면 `2223 → VM2:22`처럼 서로 다른 Host 포트로 구분할 수도 있다.
-
-`127.0.0.1`은 현재 컴퓨터 자신을 가리키는 Loopback 주소이다. 호스트 IP를 이 주소로 제한하면 같은 Windows PC에서만 해당 포트 포워딩 규칙을 이용할 수 있어 실습 환경을 외부 네트워크에 불필요하게 노출하지 않는다.
-
-연결 흐름은 다음과 같다.
-
-```text
-Windows 127.0.0.1:2222
-        ↓
-VirtualBox Port Forwarding
-        ↓
-Ubuntu Server:22
-        ↓
-OpenSSH Server
-```
-
-## Windows에서 SSH 접속
-
-Windows PowerShell에서 다음 명령을 실행했다.
-
-```powershell
+```bash
 ssh -p 2222 linuxuser@127.0.0.1
 ```
 
-첫 접속에서 서버 지문 확인 메시지가 나오면 `yes`를 입력하고 Ubuntu 계정의 비밀번호로 인증했다. 접속 후 프롬프트가 다음과 같이 나타나는 것을 확인했다.
+접속 후 프롬프트가 Ubuntu 계정으로 바뀌는 것을 확인했다.
+
+---
+
+## 9. ⚠️ 헷갈리기 쉬운 부분
+
+> ⚠️ VM을 만들었다고 Guest OS가 자동으로 설치된 것은 아니다. VM은 가상 하드웨어이고 ISO는 OS 설치 미디어다.
+
+> ⚠️ `127.0.0.1:2222`는 Ubuntu 자체 주소가 아니라 Host 측 접점이다. VirtualBox가 Guest의 22번 Port로 전달한다.
+
+> ⚠️ Ubuntu를 SSH로 접속한다고 Ubuntu가 Windows 안의 PowerShell 프로그램으로 바뀌는 것이 아니다. Ubuntu는 VM 안에서 계속 실행되고 PowerShell은 원격 Client 역할만 한다.
+
+---
+
+## 10. 🔧 Troubleshooting
+
+### 증상: SSH 접속 실패
+
+확인 흐름:
 
 ```text
-linuxuser@linux-lab:~$
+VM이 실행 중인가?
+→ Guest OS가 부팅됐는가?
+→ Guest NIC/IP가 정상인가?
+→ ssh 서비스가 active인가?
+→ Guest 22번에서 Listen하는가?
+→ NAT Port Forwarding이 정확한가?
+→ Client가 127.0.0.1:2222로 접속하는가?
+→ 사용자 이름/인증이 맞는가?
 ```
 
-이로써 Windows에서 VirtualBox의 포트 포워딩을 거쳐 Ubuntu Server에 SSH로 접속하는 실습 환경을 완성했다.
+현재 단계 명령:
 
-## 배운 점
+```bash
+ip addr
+sudo systemctl status ssh
+```
 
-- VirtualBox의 Host는 Windows이고 Guest는 Ubuntu Server이다.
-- Ubuntu Server ISO는 VM의 설치 디스크 역할을 한다.
-- NAT는 VM이 Host를 통해 외부 네트워크를 사용하게 한다.
-- 포트 포워딩은 Host의 특정 포트를 Guest의 서비스 포트로 연결한다.
-- SSH 접속에는 서버 실행 여부, 포트, 사용자 계정, 연결 주소가 모두 맞아야 한다.
-- 접속 문제가 생기면 VM 실행 상태부터 SSH 서비스와 포트 포워딩까지 연결 경로를 순서대로 확인해야 한다.
+Client:
+
+```bash
+ssh -p 2222 linuxuser@127.0.0.1
+```
+
+운영에서는 추측으로 설정을 바꾸기보다 **연결 경로를 한 단계씩 검증**한다.
+
+---
+
+## 11. 💼 실무 포인트
+
+VirtualBox 실습은 Cloud VM과 구조적으로 연결된다. 실제 업무에서도 VM의 CPU/RAM/Disk/NIC, IP, Port, Firewall/Security Group, SSH Service, 인증을 단계적으로 확인한다.
+
+장애 확인 사고방식:
 
 ```text
-VM 실행 확인
-→ IP 할당 확인
-→ SSH 서비스 확인
-→ 포트 포워딩 확인
-→ 접속 주소와 계정 확인
+Client
+→ Address/Port
+→ Network Path
+→ Firewall/NAT
+→ Server Listen
+→ Process/Service
+→ Authentication
 ```
+
+이 순서를 익히면 SSH뿐 아니라 Web/DB 접속 장애 분석에도 그대로 확장할 수 있다.
+
+---
+
+## 12. ✅ 핵심 정리
+
+- Ubuntu는 Linux Kernel을 사용하는 Linux 배포판이다.
+- Host는 Windows, Guest는 Ubuntu Server다.
+- VirtualBox는 VM을 실행하는 Hypervisor 역할을 한다.
+- IP는 Host/Interface를, Port는 Service Endpoint를 구분한다.
+- NAT 환경에서는 Host→Guest 접근을 위해 Port Forwarding을 사용할 수 있다.
+- 현재 구성은 `127.0.0.1:2222 → Guest:22`다.
+- SSH는 원격 접속 Protocol이고 Bash는 접속 후 사용하는 Shell이다.
+- 서비스 실행 상태와 부팅 자동 시작 상태는 서로 다르다.
+
+---
+
+## 13. 🧠 복습 문제
+
+1. Kernel과 Linux Distribution의 차이는 무엇인가?
+2. Host OS, Guest OS, Hypervisor를 현재 환경 기준으로 설명해보라.
+3. IP와 Port는 각각 무엇을 식별하는가?
+4. `127.0.0.1`은 무엇인가?
+5. `2222 → 22` Port Forwarding의 흐름을 설명해보라.
+6. SSH Client와 SSH Server는 각각 어디에서 동작하는가?
+7. `systemctl start ssh`와 `systemctl enable ssh`의 차이는 무엇인가?
+8. SSH 접속 실패 시 어떤 순서로 점검할 것인가?
