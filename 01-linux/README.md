@@ -157,27 +157,6 @@ r-- = 4     = 4
 | Verify | 실행 후 원하는 상태가 만들어졌는지 확인하는 방법 |
 | Operations | 서버 운영에서 언제 사용하는지 |
 
-예를 들어:
-
-```bash
-ps -fp 2075
-```
-
-이라면 단순히 "프로세스 확인"으로 끝내지 않고 다음을 설명하는 방식입니다.
-
-```text
-ps → Process Status
--f → full-format listing
--p → PID를 기준으로 대상 process 선택
-2075 → 확인할 PID
-
-주요 확인 항목
-→ USER / PID / PPID / CMD
-
-사용 시점
-→ 프로세스를 종료하거나 조치하기 전에 대상 identity 재검증
-```
-
 ---
 
 ## 🖥️ 실습 환경
@@ -209,34 +188,53 @@ ssh -p 2222 linuxuser@127.0.0.1
 
 ---
 
-## 📚 현재 GitHub에서 확인 가능한 학습 기록
+## 🔎 누적 참고 문서
+
+| 문서 | 용도 |
+|---|---|
+| [Linux Command & Option Reference](linux-command-options-reference.md) | Day 0부터 현재까지 사용한 명령어·옵션·기호·숫자·출력·실무 사용법을 누적 정리 |
+
+Day 문서는 **개념과 실습을 깊게 이해하는 문서**, Reference는 **명령어/옵션을 빠르게 다시 찾는 사전** 역할로 구분합니다.
+
+---
+
+## 📚 학습 기록
 
 | Day | 주제 | 핵심 내용 |
 |---|---|---|
-| [Day 0](day-00-virtualbox-ubuntu-server-setup.md) | VirtualBox와 Ubuntu Server 실습 환경 구축 | Host/Guest/VM, Hypervisor, Ubuntu Server, NAT, Port Forwarding, SSH |
-| [Day 1](day-01-linux-basic-cli.md) | Linux 기본 CLI와 파일·디렉터리 조작 | `pwd`, `ls`, `cd`, 파일 조작, 경로, 출력 확인, 리다이렉션, Pipe, 주요 디렉터리 |
-
-> 현재 GitHub의 `01-linux/` 디렉터리에서 실제로 확인되는 문서를 기준으로 링크를 유지합니다. 학습한 내용과 GitHub 파일 구성이 다르면 먼저 실제 저장소 상태를 확인한 뒤 인덱스를 갱신합니다.
+| [Day 0](day-00-virtualbox-ubuntu-server-setup.md) | VirtualBox와 Ubuntu Server 실습 환경 구축 | OS/Kernel/배포판, Host/Guest/VM, NAT, Port Forwarding, SSH |
+| [Day 1](day-01-linux-basic-cli.md) | Linux 기본 CLI와 파일시스템 | 경로, 파일·디렉터리 조작, 표준 입출력, 리다이렉션, Pipe, 주요 디렉터리 |
+| [Day 2-1](day-02-search-and-text-processing.md) | 파일 검색과 텍스트 처리 | `find`, `grep`, `wc`, `sort`, `uniq`, `cut`, `awk`, 로그 분석 |
+| [Day 2-2](day-02-text-processing-concepts.md) | 텍스트 처리 개념 | stdin/stdout/stderr, FD, Pipe, Record/Field, 처리 파이프라인 |
+| [Day 2-3](day-02-sed-and-config-editing.md) | `sed`와 설정 파일 수정 | 치환, `-i`, `diff`, 미리보기, 백업, 변경 검증 |
+| [Day 3-1](day-03-users-groups-sudo.md) | 사용자·그룹·sudo | UID/GID, Primary/Supplementary Group, `/etc/passwd`, NSS, `sudo`, `su` |
+| [Day 3-2](day-03-account-lock-and-deletion.md) | 계정 잠금과 삭제 | `passwd -l/-u/-S`, Authentication, `userdel`, UID/GID 잔여 파일 |
+| [Day 4-1](day-04-file-permissions-basics.md) | 파일 권한 기초 | Owner/Group/Others, `rwx`, `r=4/w=2/x=1`, bit, `chmod` |
+| [Day 4-2](day-04-directory-permissions-and-symbolic-chmod.md) | 디렉터리 권한과 문자 방식 `chmod` | Directory Entry, `rwx` 의미 차이, traverse, `u/g/o/a`, `+/-/=` |
+| [Day 4-3](day-04-ownership-groups-and-getent.md) | 파일 소유권과 그룹 | `chown`, `chgrp`, UID/GID mapping, `id`, `groups`, `getent`, NSS |
+| [Day 4-4](day-04-special-permissions-and-sudo.md) | 특수 권한과 `sudo` | SetUID, SetGID, Sticky Bit, Effective UID, `s/S/t/T`, 공유 디렉터리 |
+| [Day 5-1~2](day-05-process-basics.md) | 프로세스 관리 | Process/Kernel, PID/PPID, State, `ps`, `pgrep`, `top`, Signal, `kill` |
+| [Day 5-3](day-05-job-control-and-nohup.md) | Job Control과 `nohup` | Job/PID, foreground process group, `jobs`, `bg`, `fg`, SIGTSTP, SIGHUP, `nohup` |
 
 ---
 
 ## 🗺️ 전체 학습 로드맵
 
-| 단계 | 주제 | 핵심 내용 |
-|---|---|---|
-| Day 0 | 실습 환경 구축 | VirtualBox, Ubuntu Server, NAT, Port Forwarding, SSH |
-| Day 1 | 기본 CLI / 파일시스템 | 경로, 파일·디렉터리 조작, 표준 입출력, 리다이렉션, Pipe |
-| Day 2 | 검색 / 텍스트 처리 | `find`, `grep`, `wc`, `sort`, `uniq`, `cut`, `awk`, `sed`, `diff` |
-| Day 3 | 사용자 / 그룹 / 계정 | UID/GID, Primary/Supplementary Group, `sudo`, `su`, 계정 생성·잠금·삭제 |
-| Day 4 | 권한 / 소유권 | Owner/Group/Others, `rwx`, `chmod`, `chown`, `chgrp`, SetUID, SetGID, Sticky Bit |
-| Day 5 | 프로세스 / Job Control | Process, PID/PPID, `ps`, `pgrep`, `top`, Signal, `kill`, `jobs`, `bg`, `fg`, `nohup` |
-| Day 6 | systemd / 서비스 관리 | Unit, Service, `systemctl`, `journalctl`, 서비스 장애 분석 |
-| Day 7 | 패키지 관리 | `apt`, `dpkg`, Repository, 설치·업데이트·삭제 |
-| Day 8 | 디스크 / 파일시스템 | `lsblk`, `df`, `du`, mount, filesystem, inode, LVM 기초 |
-| Day 9 | 네트워크 | IP, Subnet, Gateway, DNS, Port, `ip`, `ping`, `ss`, `curl`, `dig` |
-| Day 10 | SSH 운영 | SSH 인증, key pair, `authorized_keys`, `sshd_config`, 접속 장애 분석 |
-| Day 11 | 로그 / cron / 시스템 점검 | `journalctl`, `/var/log`, cron, CPU/Memory/Disk 점검, Bash 기초 |
-| Day 12 | 종합 Troubleshooting | 프로세스·서비스·포트·로그·디스크를 연결한 장애 대응 미니 프로젝트 |
+| 단계 | 상태 | 주제 | 핵심 내용 |
+|---|---|---|---|
+| Day 0 | ✅ 완료 | 실습 환경 구축 | VirtualBox, Ubuntu Server, NAT, Port Forwarding, SSH |
+| Day 1 | ✅ 완료 | 기본 CLI / 파일시스템 | 경로, 파일·디렉터리 조작, 표준 입출력, 리다이렉션, Pipe |
+| Day 2 | ✅ 완료 | 검색 / 텍스트 처리 | `find`, `grep`, `wc`, `sort`, `uniq`, `cut`, `awk`, `sed`, `diff` |
+| Day 3 | ✅ 완료 | 사용자 / 그룹 / 계정 | UID/GID, Primary/Supplementary Group, `sudo`, `su`, 계정 생성·잠금·삭제 |
+| Day 4 | ✅ 완료 | 권한 / 소유권 | Owner/Group/Others, `rwx`, `chmod`, `chown`, `chgrp`, SetUID, SetGID, Sticky Bit |
+| Day 5 | ✅ 완료 | 프로세스 / Job Control | Process, PID/PPID, `ps`, `pgrep`, `top`, Signal, `kill`, `jobs`, `bg`, `fg`, `nohup` |
+| Day 6 | ⏳ 다음 | systemd / 서비스 관리 | Unit, Service, `systemctl`, `journalctl`, 서비스 장애 분석 |
+| Day 7 | ⏳ 예정 | 패키지 관리 | `apt`, `dpkg`, Repository, 설치·업데이트·삭제 |
+| Day 8 | ⏳ 예정 | 디스크 / 파일시스템 | `lsblk`, `df`, `du`, mount, filesystem, inode, LVM 기초 |
+| Day 9 | ⏳ 예정 | 네트워크 | IP, Subnet, Gateway, DNS, Port, `ip`, `ping`, `ss`, `curl`, `dig` |
+| Day 10 | ⏳ 예정 | SSH 운영 | SSH 인증, key pair, `authorized_keys`, `sshd_config`, 접속 장애 분석 |
+| Day 11 | ⏳ 예정 | 로그 / cron / 시스템 점검 | `journalctl`, `/var/log`, cron, CPU/Memory/Disk 점검, Bash 기초 |
+| Day 12 | ⏳ 예정 | 종합 Troubleshooting | 프로세스·서비스·포트·로그·디스크를 연결한 장애 대응 미니 프로젝트 |
 
 ---
 
@@ -295,19 +293,10 @@ systemctl status
 
 ---
 
-## ✅ 최종 목표
+## ✅ 현재 진행 상태
 
-이 저장소의 목적은 Linux 명령어 개수를 많이 아는 것이 아닙니다.
+**Day 0 ~ Day 5 완료.**
 
-최종 목표는 다음 질문에 스스로 답할 수 있는 것입니다.
+다음 학습은 **Day 6 — systemd / 서비스 관리**다.
 
-```text
-현재 서버에서 무슨 일이 일어나고 있는가?
-왜 이런 결과가 나왔는가?
-무엇을 확인해야 원인을 좁힐 수 있는가?
-어떤 조치가 가장 안전한가?
-조치 후 무엇으로 정상 상태를 검증할 것인가?
-같은 문제가 다시 발생하지 않도록 무엇을 기록할 것인가?
-```
-
-**명령어를 사용하는 사람에서, 시스템 상태를 읽고 문제를 해결할 수 있는 운영 엔지니어로 성장하는 것**을 목표로 합니다.
+목표는 명령어를 많이 외우는 것이 아니라, **서버 상태를 확인하고 장애 원인을 찾고 안전하게 복구한 뒤 결과를 검증할 수 있는 시스템 운영 역량**을 만드는 것이다.
