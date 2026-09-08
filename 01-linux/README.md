@@ -215,6 +215,7 @@ Day 문서는 **개념과 실습을 깊게 이해하는 문서**, Reference는 *
 | [Day 4-4](day-04-special-permissions-and-sudo.md) | 특수 권한과 `sudo` | SetUID, SetGID, Sticky Bit, Effective UID, `s/S/t/T`, 공유 디렉터리 |
 | [Day 5-1~2](day-05-process-basics.md) | 프로세스 관리 | Process/Kernel, PID/PPID, State, `ps`, `pgrep`, `top`, Signal, `kill` |
 | [Day 5-3](day-05-job-control-and-nohup.md) | Job Control과 `nohup` | Job/PID, foreground process group, `jobs`, `bg`, `fg`, SIGTSTP, SIGHUP, `nohup` |
+| [Day 6](day-06-systemd-service-management.md) | systemd와 서비스 관리 | Service/Daemon, PID 1, Unit, oneshot, `systemctl`, active/enabled, status 출력 해석, cgroup, SSH 서비스 관찰 |
 
 ---
 
@@ -228,7 +229,7 @@ Day 문서는 **개념과 실습을 깊게 이해하는 문서**, Reference는 *
 | Day 3 | ✅ 완료 | 사용자 / 그룹 / 계정 | UID/GID, Primary/Supplementary Group, `sudo`, `su`, 계정 생성·잠금·삭제 |
 | Day 4 | ✅ 완료 | 권한 / 소유권 | Owner/Group/Others, `rwx`, `chmod`, `chown`, `chgrp`, SetUID, SetGID, Sticky Bit |
 | Day 5 | ✅ 완료 | 프로세스 / Job Control | Process, PID/PPID, `ps`, `pgrep`, `top`, Signal, `kill`, `jobs`, `bg`, `fg`, `nohup` |
-| Day 6 | ⏳ 다음 | systemd / 서비스 관리 | Unit, Service, `systemctl`, `journalctl`, 서비스 장애 분석 |
+| Day 6 | 🔄 진행 중 | systemd / 서비스 관리 | Unit, Service, `systemctl`, status 출력 해석, cgroup 완료 → `journalctl`과 서비스 장애 분석 진행 예정 |
 | Day 7 | ⏳ 예정 | 패키지 관리 | `apt`, `dpkg`, Repository, 설치·업데이트·삭제 |
 | Day 8 | ⏳ 예정 | 디스크 / 파일시스템 | `lsblk`, `df`, `du`, mount, filesystem, inode, LVM 기초 |
 | Day 9 | ⏳ 예정 | 네트워크 | IP, Subnet, Gateway, DNS, Port, `ip`, `ping`, `ss`, `curl`, `dig` |
@@ -295,8 +296,10 @@ systemctl status
 
 ## ✅ 현재 진행 상태
 
-**Day 0 ~ Day 5 완료.**
+**Day 0 ~ Day 5 완료, Day 6 진행 중.**
 
-다음 학습은 **Day 6 — systemd / 서비스 관리**다.
+Day 6에서는 현재까지 **Service/Daemon, systemd PID 1, Unit, oneshot, `systemctl`, active/enabled, `systemctl status` 출력 해석, cgroup, 실제 SSH 서비스 관찰**까지 학습했다.
+
+다음 학습은 **`journalctl`을 이용한 서비스 로그 조회와 로그 기반 장애 분석**이다.
 
 목표는 명령어를 많이 외우는 것이 아니라, **서버 상태를 확인하고 장애 원인을 찾고 안전하게 복구한 뒤 결과를 검증할 수 있는 시스템 운영 역량**을 만드는 것이다.
