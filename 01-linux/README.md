@@ -72,7 +72,7 @@
 | 06-01 | [systemd·서비스·systemctl](day-06-01-systemd-service-systemctl-status-cgroup.md) | Service/Daemon, PID 1, Unit, oneshot, active/enabled, status, cgroup | ✅ |
 | 06-02 | [journalctl과 서비스 로그 분석](day-06-02-journalctl-system-logs-filtering.md) | journald, 로그 필터, Boot, 시간 범위, Priority | ✅ |
 | 06-03 | [systemd Unit 파일과 서비스 시작 과정](day-06-03-unit-files-execstart-dependencies-enable-daemon-reload.md) | Unit 섹션, Dependency/Ordering, ExecStart, Target, enable, daemon-reload | ✅ |
-| 06-04 | [Unit 확인·Override·cat/show](day-06-04-unit-override-systemctl-cat-show.md) | Unit 경로 우선순위, Drop-in Override, `systemctl cat/show`, Property, list-unit-files | ✅ |
+| 06-04 | [Unit 확인·Override·cat/show](day-06-04-unit-override-systemctl-cat-show.md) | Unit 경로 우선순위, Drop-in Override, `systemctl cat/show`, Property, list-unit-files + 조회 실습 | ✅ |
 
 ---
 
@@ -239,6 +239,16 @@ systemctl status UNIT
 
 **Day 0 ~ Day 6-4 완료.**
 
-현재까지 systemd 서비스의 개념과 lifecycle, `systemctl`, `journalctl`, Unit 파일 구조, Dependency/Ordering, enable, `daemon-reload`, Unit 경로 우선순위, Drop-in Override, `systemctl cat/show`까지 학습했고 실제 Ubuntu Server에서 SSH Unit을 읽기 전용으로 관찰했습니다.
+현재까지 systemd 서비스의 개념과 lifecycle, `systemctl`, `journalctl`, Unit 파일 구조, Dependency/Ordering, enable, `daemon-reload`, Unit 경로 우선순위, Drop-in Override, `systemctl cat/show`까지 학습했습니다.
+
+Day 6-4에서는 Ubuntu Server에서 다음 세 조회 실습도 직접 수행했습니다.
+
+```bash
+systemctl cat ssh
+systemctl show ssh -p FragmentPath -p UnitFileState -p ActiveState -p SubState
+systemctl list-unit-files --type=service | head -20
+```
+
+출력 원문은 공유되지 않았으므로 결과를 추정해 기록하지 않고, **실행한 명령과 확인 목적만 학습 기록에 남겼습니다.**
 
 다음은 **안전한 연습용 Service Unit을 직접 만들어 `daemon-reload → start → status → journal → stop → enable/disable` 전체 lifecycle을 실습하고, 일부러 오류를 만들어 Troubleshooting하는 단계**입니다.
