@@ -45,13 +45,14 @@
 | systemd, Service, Daemon, PID 1, `systemctl`, active/enabled, cgroup | [Day 6-1 — systemd·서비스·systemctl](day-06-01-systemd-service-systemctl-status-cgroup.md) |
 | journal, `journalctl`, `journald`, `-u`, `-f`, `-b`, `--since`, Priority | [Day 6-2 — journalctl과 서비스 로그 분석](day-06-02-journalctl-system-logs-filtering.md) |
 | Unit 파일, `[Unit]`, `[Service]`, `[Install]`, `ExecStart`, `Requires`, `After`, enable, `daemon-reload` | [Day 6-3 — systemd Unit 파일과 서비스 시작 과정](day-06-03-unit-files-execstart-dependencies-enable-daemon-reload.md) |
+| Unit 경로 우선순위, Drop-in Override, `systemctl edit`, `systemctl cat`, `systemctl show`, `FragmentPath`, `ActiveState`, `SubState` | [Day 6-4 — Unit 확인·Override·cat/show](day-06-04-unit-override-systemctl-cat-show.md) |
 | 지금까지 사용한 Linux 명령어와 Option 빠른 검색 | [Linux Command & Option Reference](reference-linux-commands-options.md) |
 
 ---
 
 # 📚 공부 순서
 
-파일 이름 앞의 번호는 **실제로 공부한 순서**를 나타냅니다. 같은 Day 안에서는 `01`, `02`, `03` 순서로 이어집니다.
+파일 이름 앞의 번호는 **실제로 공부한 순서**를 나타냅니다. 같은 Day 안에서는 `01`, `02`, `03`, `04` 순서로 이어집니다.
 
 | 순서 | 주제 | 핵심 내용 | 상태 |
 |---:|---|---|---|
@@ -70,7 +71,8 @@
 | 05-02 | [Job Control과 nohup](day-05-02-job-control-jobs-fg-bg-nohup.md) | Job ID, foreground/background, `jobs`, `fg`, `bg`, SIGHUP | ✅ |
 | 06-01 | [systemd·서비스·systemctl](day-06-01-systemd-service-systemctl-status-cgroup.md) | Service/Daemon, PID 1, Unit, oneshot, active/enabled, status, cgroup | ✅ |
 | 06-02 | [journalctl과 서비스 로그 분석](day-06-02-journalctl-system-logs-filtering.md) | journald, 로그 필터, Boot, 시간 범위, Priority | ✅ |
-| 06-03 | [systemd Unit 파일과 서비스 시작 과정](day-06-03-unit-files-execstart-dependencies-enable-daemon-reload.md) | Unit 섹션, Dependency/Ordering, ExecStart, Target, enable, daemon-reload | 🔄 |
+| 06-03 | [systemd Unit 파일과 서비스 시작 과정](day-06-03-unit-files-execstart-dependencies-enable-daemon-reload.md) | Unit 섹션, Dependency/Ordering, ExecStart, Target, enable, daemon-reload | ✅ |
+| 06-04 | [Unit 확인·Override·cat/show](day-06-04-unit-override-systemctl-cat-show.md) | Unit 경로 우선순위, Drop-in Override, `systemctl cat/show`, Property, list-unit-files | ✅ |
 
 ---
 
@@ -192,6 +194,7 @@ pgrep으로 후보 찾기
 systemctl status UNIT
 → journalctl -u UNIT
 → systemctl cat UNIT
+→ systemctl show UNIT
 → Process
 → Port
 → Config / Permission / Dependency
@@ -205,9 +208,10 @@ systemctl status UNIT
 
 ```text
 현재 Unit 확인
-→ 원본 / override 확인
+→ 기본 Unit / Drop-in Override 확인
 → 변경
 → systemctl daemon-reload
+→ systemctl show로 인식값 확인
 → 영향 판단
 → 필요하면 reload/restart
 → status
@@ -221,7 +225,7 @@ systemctl status UNIT
 
 | Day | 예정 주제 | 핵심 내용 |
 |---|---|---|
-| Day 6 | systemd / 서비스 관리 마무리 | 안전한 연습용 Service Unit 생성, lifecycle 실습, 장애 분석 |
+| Day 6 | systemd / 서비스 관리 마무리 | 안전한 연습용 Service Unit 생성, lifecycle 실습, 일부러 오류 발생 후 장애 분석 |
 | Day 7 | 패키지 관리 | `apt`, `dpkg`, Repository, 설치/업데이트/삭제 |
 | Day 8 | 디스크 / 파일시스템 | `lsblk`, `df`, `du`, mount, filesystem, inode, LVM 기초 |
 | Day 9 | 네트워크 | IP, Subnet, Gateway, DNS, Port, `ip`, `ping`, `ss`, `curl`, `dig` |
@@ -233,8 +237,8 @@ systemctl status UNIT
 
 ## ✅ 현재 진행 상태
 
-**Day 0 ~ Day 6-2 완료, Day 6-3 진행 중.**
+**Day 0 ~ Day 6-4 완료.**
 
-현재는 systemd 서비스가 실제 Unit 파일을 통해 어떻게 실행되고, Dependency와 Ordering이 어떻게 나뉘며, `enable`과 `daemon-reload`가 어떤 역할을 하는지까지 학습했습니다.
+현재까지 systemd 서비스의 개념과 lifecycle, `systemctl`, `journalctl`, Unit 파일 구조, Dependency/Ordering, enable, `daemon-reload`, Unit 경로 우선순위, Drop-in Override, `systemctl cat/show`까지 학습했고 실제 Ubuntu Server에서 SSH Unit을 읽기 전용으로 관찰했습니다.
 
-다음은 SSH를 건드리지 않고 `systemctl cat/show`로 실제 Unit을 관찰한 뒤, **안전한 연습용 Service Unit을 직접 만들어 lifecycle과 장애 분석을 실습**하는 단계입니다.
+다음은 **안전한 연습용 Service Unit을 직접 만들어 `daemon-reload → start → status → journal → stop → enable/disable` 전체 lifecycle을 실습하고, 일부러 오류를 만들어 Troubleshooting하는 단계**입니다.
