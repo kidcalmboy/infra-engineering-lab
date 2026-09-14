@@ -4,7 +4,7 @@
 
 ## 🎯 학습 목표
 
-이 기록은 Linux Master 2급을 최종 목표로 삼지 않습니다. Linux Master 2급 개념은 빠뜨리지 않기 위한 최소 기준으로 사용하고, 실제 문서는 다음 수준을 목표로 합니다.
+Linux Master 2급은 빠뜨리지 않기 위한 최소 기준으로 사용하고, 실제 기록은 다음 수준을 목표로 합니다.
 
 ```text
 개념 이해
@@ -25,8 +25,6 @@
 
 # 🔎 궁금한 내용 바로 찾기
 
-궁금한 주제가 생겼을 때 파일명을 하나씩 열어보지 않아도 되도록 **개념과 명령어 기준 검색 인덱스**를 먼저 둡니다.
-
 | 궁금한 내용 / 검색 키워드 | 문서 |
 |---|---|
 | VirtualBox, Ubuntu Server, VM, Host/Guest, NAT, Port Forwarding, SSH | [Day 0 — Ubuntu Server 실습 환경과 SSH](day-00-ubuntu-server-virtualbox-network-ssh.md) |
@@ -35,44 +33,46 @@
 | stdin, stdout, stderr, FD 0/1/2, Pipe, Record, Field | [Day 2-2 — 표준 입출력과 텍스트 처리 원리](day-02-02-stdin-stdout-stderr-fd-pipe.md) |
 | `sed`, `diff`, 설정 파일 수정, 백업, 검증 | [Day 2-3 — sed·diff와 안전한 설정 파일 수정](day-02-03-sed-diff-config-editing.md) |
 | 사용자, 그룹, UID/GID, `sudo`, `su`, `/etc/passwd`, `getent` | [Day 3-1 — 사용자·그룹·sudo](day-03-01-users-groups-uid-gid-sudo-su.md) |
-| 계정 잠금, `passwd -l`, `userdel`, 퇴사자/계정 Offboarding | [Day 3-2 — 계정 잠금·삭제·Offboarding](day-03-02-account-lock-userdel-offboarding.md) |
-| 파일 권한, Owner/Group/Others, rwx, 644/640/755, `chmod` | [Day 4-1 — 파일 권한과 chmod](day-04-01-file-permissions-rwx-chmod.md) |
+| 계정 잠금, `passwd -l`, `userdel`, Offboarding | [Day 3-2 — 계정 잠금·삭제·Offboarding](day-03-02-account-lock-userdel-offboarding.md) |
+| 파일 권한, rwx, 644/640/755, `chmod` | [Day 4-1 — 파일 권한과 chmod](day-04-01-file-permissions-rwx-chmod.md) |
 | 디렉터리 권한, traverse, 부모 경로, symbolic chmod | [Day 4-2 — 디렉터리 권한과 경로 접근](day-04-02-directory-permissions-traverse-symbolic-chmod.md) |
 | `chown`, `chgrp`, 소유권, 그룹, `getent` | [Day 4-3 — 소유권·그룹·chown/chgrp](day-04-03-ownership-chown-chgrp-getent.md) |
-| SetUID, SetGID, Sticky Bit, 특수 권한, 공유 디렉터리 | [Day 4-4 — SetUID·SetGID·Sticky Bit](day-04-04-special-permissions-setuid-setgid-sticky.md) |
+| SetUID, SetGID, Sticky Bit, 특수 권한 | [Day 4-4 — SetUID·SetGID·Sticky Bit](day-04-04-special-permissions-setuid-setgid-sticky.md) |
 | Process, PID/PPID, `ps`, `pgrep`, `top`, Signal, `kill` | [Day 5-1 — 프로세스·Signal·kill](day-05-01-process-pid-ps-pgrep-top-signals-kill.md) |
 | Job, `jobs`, `fg`, `bg`, Ctrl+Z, `nohup`, SIGHUP | [Day 5-2 — Job Control과 nohup](day-05-02-job-control-jobs-fg-bg-nohup.md) |
 | systemd, Service, Daemon, PID 1, `systemctl`, active/enabled, cgroup | [Day 6-1 — systemd·서비스·systemctl](day-06-01-systemd-service-systemctl-status-cgroup.md) |
 | journal, `journalctl`, `journald`, `-u`, `-f`, `-b`, `--since`, Priority | [Day 6-2 — journalctl과 서비스 로그 분석](day-06-02-journalctl-system-logs-filtering.md) |
 | Unit 파일, `[Unit]`, `[Service]`, `[Install]`, `ExecStart`, `Requires`, `After`, enable, `daemon-reload` | [Day 6-3 — systemd Unit 파일과 서비스 시작 과정](day-06-03-unit-files-execstart-dependencies-enable-daemon-reload.md) |
-| Unit 경로 우선순위, Drop-in Override, `systemctl edit`, `systemctl cat`, `systemctl show`, `FragmentPath`, `ActiveState`, `SubState` | [Day 6-4 — Unit 확인·Override·cat/show](day-06-04-unit-override-systemctl-cat-show.md) |
+| Unit 경로 우선순위, Drop-in Override, `systemctl edit`, `systemctl cat`, `systemctl show` | [Day 6-4 — Unit 확인·Override·cat/show](day-06-04-unit-override-systemctl-cat-show.md) |
+| 직접 Service 만들기, `Type=simple`, Script, `chmod +x`, `start/stop`, `enable --now`, journal, symbolic link | [Day 6-5 — 직접 systemd Service 만들기와 Lifecycle 실습](day-06-05-custom-service-lifecycle-journal-enable.md) |
 | 지금까지 사용한 Linux 명령어와 Option 빠른 검색 | [Linux Command & Option Reference](reference-linux-commands-options.md) |
 
 ---
 
 # 📚 공부 순서
 
-파일 이름 앞의 번호는 **실제로 공부한 순서**를 나타냅니다. 같은 Day 안에서는 `01`, `02`, `03`, `04` 순서로 이어집니다.
+파일 이름 앞 번호는 실제 학습 순서입니다.
 
 | 순서 | 주제 | 핵심 내용 | 상태 |
 |---:|---|---|---|
-| 00 | [Ubuntu Server 실습 환경과 SSH](day-00-ubuntu-server-virtualbox-network-ssh.md) | VM, Host/Guest, Linux/Ubuntu, NAT, Port Forwarding, SSH | ✅ |
-| 01 | [Linux CLI·파일시스템·리다이렉션](day-01-linux-cli-filesystem-redirection-pipe.md) | 기본 명령어, 경로, 파일/디렉터리, stdin/stdout 기초, Pipe | ✅ |
+| 00 | [Ubuntu Server 실습 환경과 SSH](day-00-ubuntu-server-virtualbox-network-ssh.md) | VM, NAT, Port Forwarding, SSH | ✅ |
+| 01 | [Linux CLI·파일시스템·리다이렉션](day-01-linux-cli-filesystem-redirection-pipe.md) | 기본 명령, 경로, 파일/디렉터리, Pipe | ✅ |
 | 02-01 | [파일 검색과 텍스트 처리](day-02-01-find-grep-sort-uniq-cut-awk.md) | `find`, `grep`, `wc`, `sort`, `uniq`, `cut`, `awk` | ✅ |
-| 02-02 | [표준 입출력과 텍스트 처리 원리](day-02-02-stdin-stdout-stderr-fd-pipe.md) | FD 0/1/2, stdin/stdout/stderr, Pipe, Record/Field | ✅ |
-| 02-03 | [sed·diff와 안전한 설정 파일 수정](day-02-03-sed-diff-config-editing.md) | `sed`, `diff`, preview, backup, 검증 | ✅ |
-| 03-01 | [사용자·그룹·sudo](day-03-01-users-groups-uid-gid-sudo-su.md) | UID/GID, primary/supplementary group, sudo, su, NSS | ✅ |
-| 03-02 | [계정 잠금·삭제·Offboarding](day-03-02-account-lock-userdel-offboarding.md) | password lock, `userdel`, 잔여 UID/GID 파일, 운영 Offboarding | ✅ |
-| 04-01 | [파일 권한과 chmod](day-04-01-file-permissions-rwx-chmod.md) | rwx, 4/2/1, 600/640/644/755, 최소 권한 | ✅ |
-| 04-02 | [디렉터리 권한과 경로 접근](day-04-02-directory-permissions-traverse-symbolic-chmod.md) | directory rwx, traverse, parent permission, symbolic chmod | ✅ |
-| 04-03 | [소유권·그룹·chown/chgrp](day-04-03-ownership-chown-chgrp-getent.md) | owner/group, UID/GID mapping, `chown`, `chgrp`, `getent` | ✅ |
-| 04-04 | [SetUID·SetGID·Sticky Bit](day-04-04-special-permissions-setuid-setgid-sticky.md) | special permission, Effective UID/GID, 공유 디렉터리 | ✅ |
-| 05-01 | [프로세스·Signal·kill](day-05-01-process-pid-ps-pgrep-top-signals-kill.md) | PID/PPID, State, `ps`, `pgrep`, `top`, SIGTERM/SIGKILL | ✅ |
-| 05-02 | [Job Control과 nohup](day-05-02-job-control-jobs-fg-bg-nohup.md) | Job ID, foreground/background, `jobs`, `fg`, `bg`, SIGHUP | ✅ |
-| 06-01 | [systemd·서비스·systemctl](day-06-01-systemd-service-systemctl-status-cgroup.md) | Service/Daemon, PID 1, Unit, oneshot, active/enabled, status, cgroup | ✅ |
-| 06-02 | [journalctl과 서비스 로그 분석](day-06-02-journalctl-system-logs-filtering.md) | journald, 로그 필터, Boot, 시간 범위, Priority | ✅ |
-| 06-03 | [systemd Unit 파일과 서비스 시작 과정](day-06-03-unit-files-execstart-dependencies-enable-daemon-reload.md) | Unit 섹션, Dependency/Ordering, ExecStart, Target, enable, daemon-reload | ✅ |
-| 06-04 | [Unit 확인·Override·cat/show](day-06-04-unit-override-systemctl-cat-show.md) | Unit 경로 우선순위, Drop-in Override, `systemctl cat/show`, Property, list-unit-files + 조회 실습 | ✅ |
+| 02-02 | [표준 입출력과 텍스트 처리 원리](day-02-02-stdin-stdout-stderr-fd-pipe.md) | FD 0/1/2, stdin/stdout/stderr, Pipe | ✅ |
+| 02-03 | [sed·diff와 안전한 설정 파일 수정](day-02-03-sed-diff-config-editing.md) | `sed`, `diff`, backup, 검증 | ✅ |
+| 03-01 | [사용자·그룹·sudo](day-03-01-users-groups-uid-gid-sudo-su.md) | UID/GID, group, sudo, su, NSS | ✅ |
+| 03-02 | [계정 잠금·삭제·Offboarding](day-03-02-account-lock-userdel-offboarding.md) | 계정 잠금/삭제, 잔여 UID/GID 파일 | ✅ |
+| 04-01 | [파일 권한과 chmod](day-04-01-file-permissions-rwx-chmod.md) | rwx, 4/2/1, chmod | ✅ |
+| 04-02 | [디렉터리 권한과 경로 접근](day-04-02-directory-permissions-traverse-symbolic-chmod.md) | directory rwx, traverse | ✅ |
+| 04-03 | [소유권·그룹·chown/chgrp](day-04-03-ownership-chown-chgrp-getent.md) | owner/group, chown, chgrp, getent | ✅ |
+| 04-04 | [SetUID·SetGID·Sticky Bit](day-04-04-special-permissions-setuid-setgid-sticky.md) | special permission | ✅ |
+| 05-01 | [프로세스·Signal·kill](day-05-01-process-pid-ps-pgrep-top-signals-kill.md) | PID/PPID, ps, pgrep, top, Signal | ✅ |
+| 05-02 | [Job Control과 nohup](day-05-02-job-control-jobs-fg-bg-nohup.md) | jobs, fg, bg, nohup, SIGHUP | ✅ |
+| 06-01 | [systemd·서비스·systemctl](day-06-01-systemd-service-systemctl-status-cgroup.md) | Service/Daemon, PID 1, Unit, status, cgroup | ✅ |
+| 06-02 | [journalctl과 서비스 로그 분석](day-06-02-journalctl-system-logs-filtering.md) | journald, log filter, Boot, Priority | ✅ |
+| 06-03 | [systemd Unit 파일과 서비스 시작 과정](day-06-03-unit-files-execstart-dependencies-enable-daemon-reload.md) | Unit 섹션, Dependency/Ordering, ExecStart, enable | ✅ |
+| 06-04 | [Unit 확인·Override·cat/show](day-06-04-unit-override-systemctl-cat-show.md) | Override, cat/show, Property, Unit file 조회 | ✅ |
+| 06-05 | [직접 systemd Service 만들기와 Lifecycle 실습](day-06-05-custom-service-lifecycle-journal-enable.md) | Script/Unit 작성, daemon-reload, start/stop, journal, enable/disable, symbolic link | ✅ |
 
 ---
 
@@ -103,8 +103,6 @@
 실제 서비스/시스템 정상
 ```
 
-예를 들어 서비스가 `active`여도 Port, Firewall, DNS, Backend 등의 문제로 실제 기능은 실패할 수 있습니다.
-
 ## 3. Troubleshooting 순서
 
 ```text
@@ -120,8 +118,6 @@
 ```
 
 ## 4. 위험한 명령은 영향부터 확인
-
-삭제, 권한 변경, Process 종료, Service restart 같은 명령은 다음 순서를 우선합니다.
 
 ```text
 현재 상태 확인
@@ -199,7 +195,7 @@ systemctl status UNIT
 → Port
 → Config / Permission / Dependency
 → 원인 판단
-→ reload/restart 등 필요한 조치
+→ 필요한 조치
 → status / journal 재확인
 → 실제 기능 검증
 ```
@@ -219,13 +215,27 @@ systemctl status UNIT
 → 실제 기능 검증
 ```
 
+## 직접 만든 Service 점검
+
+```text
+Script 존재/권한 확인
+→ systemctl cat UNIT
+→ ExecStart 경로 확인
+→ daemon-reload 여부 확인
+→ start
+→ status
+→ pgrep으로 Process 확인
+→ journal 확인
+→ 실제 동작 검증
+```
+
 ---
 
 # 🗺️ 다음 로드맵
 
 | Day | 예정 주제 | 핵심 내용 |
 |---|---|---|
-| Day 6 | systemd / 서비스 관리 마무리 | 안전한 연습용 Service Unit 생성, lifecycle 실습, 일부러 오류 발생 후 장애 분석 |
+| Day 6 | systemd / 서비스 관리 마무리 | 연습용 Service에 일부러 오류 발생, failed 상태와 로그 기반 Troubleshooting |
 | Day 7 | 패키지 관리 | `apt`, `dpkg`, Repository, 설치/업데이트/삭제 |
 | Day 8 | 디스크 / 파일시스템 | `lsblk`, `df`, `du`, mount, filesystem, inode, LVM 기초 |
 | Day 9 | 네트워크 | IP, Subnet, Gateway, DNS, Port, `ip`, `ping`, `ss`, `curl`, `dig` |
@@ -237,18 +247,44 @@ systemctl status UNIT
 
 ## ✅ 현재 진행 상태
 
-**Day 0 ~ Day 6-4 완료.**
+**Day 0 ~ Day 6-5 완료.**
 
-현재까지 systemd 서비스의 개념과 lifecycle, `systemctl`, `journalctl`, Unit 파일 구조, Dependency/Ordering, enable, `daemon-reload`, Unit 경로 우선순위, Drop-in Override, `systemctl cat/show`까지 학습했습니다.
+Day 6-5에서는 안전한 연습용 Service를 직접 만들고 전체 lifecycle을 실습했습니다.
 
-Day 6-4에서는 Ubuntu Server에서 다음 세 조회 실습도 직접 수행했습니다.
+실제 사용한 Script 경로는 계획과 달리 다음 이름으로 만들었습니다.
 
-```bash
-systemctl cat ssh
-systemctl show ssh -p FragmentPath -p UnitFileState -p ActiveState -p SubState
-systemctl list-unit-files --type=service | head -20
+```text
+/usr/local/bin/hello-system.sh
 ```
 
-출력 원문은 공유되지 않았으므로 결과를 추정해 기록하지 않고, **실행한 명령과 확인 목적만 학습 기록에 남겼습니다.**
+Service Unit은:
 
-다음은 **안전한 연습용 Service Unit을 직접 만들어 `daemon-reload → start → status → journal → stop → enable/disable` 전체 lifecycle을 실습하고, 일부러 오류를 만들어 Troubleshooting하는 단계**입니다.
+```text
+/etc/systemd/system/hello-systemd.service
+```
+
+로 구성했고 `ExecStart=/usr/local/bin/hello-system.sh`처럼 실제 Script 경로와 맞춰 사용했습니다.
+
+직접 수행한 흐름:
+
+```text
+Script 작성
+→ chmod +x
+→ Unit 작성
+→ daemon-reload
+→ cat/show 확인
+→ start
+→ status
+→ Process 확인
+→ journal 조회 / follow
+→ stop
+→ Process 종료 검증
+→ enable / disable
+→ symbolic link 확인
+→ enable --now
+→ is-active / is-enabled 검증
+```
+
+출력 원문은 공유되지 않았으므로 특정 PID나 실제 status 내용을 임의로 기록하지 않았습니다.
+
+다음은 **이 연습용 Service에 일부러 장애를 만들어 `failed` 상태와 journal을 이용해 원인을 찾고 복구하는 Troubleshooting 실습**입니다.
