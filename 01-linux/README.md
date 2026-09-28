@@ -48,6 +48,7 @@ Linux Master 2급은 빠뜨리지 않기 위한 최소 기준으로 사용하고
 | `failed`, `ExecStart` 경로 오류, `Permission denied`, `reset-failed`, `Restart=on-failure`, systemd 장애 분석 | [Day 6-6 — systemd Service 장애 분석과 Troubleshooting](day-06-06-systemd-service-failure-troubleshooting.md) |
 | Package, `.deb`, Dependency, Repository, 로컬 Package Index, `apt`, `dpkg`, `apt update/install/policy`, `dpkg -S/-L` | [Day 7-1 — Package·Repository·apt·dpkg 기초](day-07-01-package-apt-dpkg-repository-basics.md) |
 | APT Repository 구조, `sources.list`, `sources.list.d`, Suite, Component, `apt update`, `InRelease`, Signature, Checksum, `/var/lib/apt/lists`, `/var/cache/apt/archives` | [Day 7-2 — APT Repository 구조와 apt update 내부 동작](day-07-02-apt-repository-structure-and-update-flow.md) |
+| `apt install`, `remove`, `purge`, `autoremove`, `--dry-run`, `dpkg -l/-L/-S`, `ii`, `rc`, 설치/삭제 검증 | [Day 7-3 — Package 설치·삭제와 dpkg 상태 확인](day-07-03-package-install-remove-purge-dpkg-status.md) |
 | 지금까지 사용한 Linux 명령어와 Option 빠른 검색 | [Linux Command & Option Reference](reference-linux-commands-options.md) |
 
 ---
@@ -79,6 +80,7 @@ Linux Master 2급은 빠뜨리지 않기 위한 최소 기준으로 사용하고
 | 06-06 | [systemd Service 장애 분석과 Troubleshooting](day-06-06-systemd-service-failure-troubleshooting.md) | failed, ExecStart 오류, permission, daemon-reload 누락, Restart 정책, 복구 검증 | ✅ |
 | 07-01 | [Package·Repository·apt·dpkg 기초](day-07-01-package-apt-dpkg-repository-basics.md) | Package/.deb, Dependency, Repository, 로컬 Index, apt/dpkg 역할, 기본 조회 명령 | ✅ |
 | 07-02 | [APT Repository 구조와 apt update 내부 동작](day-07-02-apt-repository-structure-and-update-flow.md) | sources.list(.d), Suite/Component, Metadata, Signature/Checksum, lists/cache, apt update 흐름 | ✅ |
+| 07-03 | [Package 설치·삭제와 dpkg 상태 확인](day-07-03-package-install-remove-purge-dpkg-status.md) | apt install/remove/purge, dpkg 상태 코드, Package↔File 조회, autoremove dry-run | ✅ |
 
 ---
 
@@ -252,40 +254,58 @@ Script 존재/권한 확인
 
 ## ✅ 현재 진행 상태
 
-**Day 0 ~ Day 7-2 완료.**
+**Day 0 ~ Day 7-3 완료.**
 
-Day 7-2에서는 APT가 어떤 Repository를 바라보는지와 `apt update`의 내부 흐름을 정리했습니다.
+Day 7-3에서는 작은 CLI Package인 `tree`를 예제로 설치부터 제거까지 Package lifecycle을 정리했습니다.
 
-핵심 구조:
+핵심 흐름:
 
 ```text
-/etc/apt/sources.list
-/etc/apt/sources.list.d/
-→ 사용할 Repository 정의
-
-Repository
-→ Packages / Release / InRelease 등의 Metadata 제공
-
-apt update
-→ Repository Metadata를 가져오고 검증
-→ /var/lib/apt/lists/ 갱신
+apt policy
+→ 설치 전 Installed / Candidate 확인
 
 apt install
-→ 로컬 Package Index를 참고
-→ Candidate/Dependency 결정
-→ 실제 .deb 다운로드 및 설치
+→ Repository/Index를 이용해 실제 Package 설치
+
+dpkg -l
+→ 로컬 dpkg Database의 설치 상태 확인
+
+dpkg -L
+→ Package → Files
+
+dpkg -S
+→ File → Package
+
+apt remove
+→ Package 제거 중심
+
+apt purge
+→ Package + Package 관리 설정 파일 제거
+
+apt autoremove --dry-run
+→ 더 이상 필요하지 않은 자동 Dependency 제거 후보를 실제 변경 없이 확인
 ```
 
-중요한 경로 구분:
+특히 `dpkg -l`의 대표 상태 코드:
 
 ```text
-/var/lib/apt/lists/
-→ Package Index / Metadata
+ii
+→ 정상 설치 상태로 이해
 
-/var/cache/apt/archives/
-→ 실제 다운로드한 .deb Package 캐시 가능 위치
+rc
+→ Package 본체는 제거되었지만 config-files가 남은 상태
 ```
 
-또한 Repository의 Suite/Distribution, Component(`main`, `universe`, `restricted`, `multiverse`), Signature와 Checksum, `apt update` 출력의 `Hit/Get/Ign/Err` 의미, 외부 Repository를 추가할 때 신뢰 범위를 넓힌다는 운영 관점까지 학습했습니다.
+를 구분했고, Package 설치/삭제 명령이 성공했다는 것만으로 끝내지 않고:
 
-다음 학습은 **Day 7-3 — 실제 Package 설치/삭제와 dpkg 상태 확인**입니다.
+```text
+설치 상태
+→ 파일 위치
+→ Version
+→ 실제 실행
+→ Service라면 systemctl/journal
+```
+
+까지 검증하는 운영 습관을 연결했습니다.
+
+다음 학습은 **Day 7-4 — Package 업데이트, Version, hold/unhold, upgrade/full-upgrade**입니다.
