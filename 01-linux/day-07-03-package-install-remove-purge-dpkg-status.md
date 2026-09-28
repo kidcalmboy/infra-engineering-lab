@@ -195,6 +195,8 @@ ii
 
 > dpkg 상태 코드는 더 다양하지만 Day 7-3에서는 `ii`, `rc`를 우선 이해한다.
 
+정확히는 `dpkg -l` 출력의 앞쪽 상태 문자는 **Desired(원하는 상태) / Status(현재 상태) / Error 플래그**를 조합해 표현한다. 초보 단계에서는 첫 두 글자를 중심으로 `ii`, `rc`를 읽되, 장애 분석 단계에서는 세 번째 오류 상태까지 확인해야 한다.
+
 ---
 
 # 5. Package가 설치한 파일 확인 — `dpkg -L`
@@ -288,6 +290,8 @@ command -v tree
 ```bash
 which tree
 ```
+
+실무적으로는 `command -v`가 shell builtin/alias/function까지 포함해 "이 이름이 어떻게 해석되는지" 확인하는 데 더 일반적으로 유용하고, `which`는 외부 실행 파일 탐색 용도로 자주 사용된다.
 
 예상 경로:
 
@@ -728,7 +732,46 @@ autoremove가 제거하려는 대상
 
 ---
 
-# 21. ✅ 핵심 정리
+# 21. 명령어 구조 빠른 해석
+
+```bash
+dpkg -l
+```
+
+- `-l` = list
+- 설치/제거 상태를 포함한 dpkg Database 목록 조회
+
+```bash
+dpkg -L tree
+```
+
+- `-L` = list files
+- `tree` Package가 설치한 파일 목록
+
+```bash
+dpkg -S /usr/bin/tree
+```
+
+- `-S` = search
+- 해당 파일 경로를 소유한 설치 Package 검색
+
+```bash
+apt list --installed
+```
+
+- `list` = Package 목록
+- `--installed` = 설치된 Package로 제한
+
+```bash
+sudo apt autoremove --dry-run
+```
+
+- `autoremove` = 더 이상 필요하지 않은 자동 설치 Dependency 제거
+- `--dry-run` = 실제 변경 없이 예정 작업만 계산/표시
+
+---
+
+# 22. ✅ 핵심 정리
 
 ```text
 apt policy PACKAGE
@@ -771,7 +814,7 @@ apt autoremove
 
 ---
 
-# 22. 🧠 복습 문제
+# 23. 🧠 복습 문제
 
 1. `apt policy tree`에서 Installed와 Candidate는 각각 무엇인가?
 2. `apt install`이 실제 설치하기 전 어떤 정보를 참고하는가?
