@@ -45,6 +45,7 @@ Linux Master 2급은 빠뜨리지 않기 위한 최소 기준으로 사용하고
 | Unit 파일, `[Unit]`, `[Service]`, `[Install]`, `ExecStart`, `Requires`, `After`, enable, `daemon-reload` | [Day 6-3 — systemd Unit 파일과 서비스 시작 과정](day-06-03-unit-files-execstart-dependencies-enable-daemon-reload.md) |
 | Unit 경로 우선순위, Drop-in Override, `systemctl edit`, `systemctl cat`, `systemctl show` | [Day 6-4 — Unit 확인·Override·cat/show](day-06-04-unit-override-systemctl-cat-show.md) |
 | 직접 Service 만들기, `Type=simple`, Script, `chmod +x`, `start/stop`, `enable --now`, journal, symbolic link | [Day 6-5 — 직접 systemd Service 만들기와 Lifecycle 실습](day-06-05-custom-service-lifecycle-journal-enable.md) |
+| `failed`, `ExecStart` 경로 오류, `Permission denied`, `reset-failed`, `Restart=on-failure`, systemd 장애 분석 | [Day 6-6 — systemd Service 장애 분석과 Troubleshooting](day-06-06-systemd-service-failure-troubleshooting.md) |
 | 지금까지 사용한 Linux 명령어와 Option 빠른 검색 | [Linux Command & Option Reference](reference-linux-commands-options.md) |
 
 ---
@@ -73,6 +74,7 @@ Linux Master 2급은 빠뜨리지 않기 위한 최소 기준으로 사용하고
 | 06-03 | [systemd Unit 파일과 서비스 시작 과정](day-06-03-unit-files-execstart-dependencies-enable-daemon-reload.md) | Unit 섹션, Dependency/Ordering, ExecStart, enable | ✅ |
 | 06-04 | [Unit 확인·Override·cat/show](day-06-04-unit-override-systemctl-cat-show.md) | Override, cat/show, Property, Unit file 조회 | ✅ |
 | 06-05 | [직접 systemd Service 만들기와 Lifecycle 실습](day-06-05-custom-service-lifecycle-journal-enable.md) | Script/Unit 작성, daemon-reload, start/stop, journal, enable/disable, symbolic link | ✅ |
+| 06-06 | [systemd Service 장애 분석과 Troubleshooting](day-06-06-systemd-service-failure-troubleshooting.md) | failed, ExecStart 오류, permission, daemon-reload 누락, Restart 정책, 복구 검증 | ✅ |
 
 ---
 
@@ -235,7 +237,6 @@ Script 존재/권한 확인
 
 | Day | 예정 주제 | 핵심 내용 |
 |---|---|---|
-| Day 6 | systemd / 서비스 관리 마무리 | 연습용 Service에 일부러 오류 발생, failed 상태와 로그 기반 Troubleshooting |
 | Day 7 | 패키지 관리 | `apt`, `dpkg`, Repository, 설치/업데이트/삭제 |
 | Day 8 | 디스크 / 파일시스템 | `lsblk`, `df`, `du`, mount, filesystem, inode, LVM 기초 |
 | Day 9 | 네트워크 | IP, Subnet, Gateway, DNS, Port, `ip`, `ping`, `ss`, `curl`, `dig` |
@@ -247,44 +248,54 @@ Script 존재/권한 확인
 
 ## ✅ 현재 진행 상태
 
-**Day 0 ~ Day 6-5 완료.**
+**Day 0 ~ Day 6-6 완료. Day 6 systemd / Service 관리 파트 완료.**
 
-Day 6-5에서는 안전한 연습용 Service를 직접 만들고 전체 lifecycle을 실습했습니다.
+Day 6에서는 Service와 Daemon의 차이부터 시작해 `systemctl`, `journalctl`, Unit 파일, Dependency/Ordering, `ExecStart`, enable/target/symlink, Override, `systemctl cat/show`, 직접 Service 생성과 lifecycle 운영까지 학습했습니다.
 
-실제 사용한 Script 경로는 계획과 달리 다음 이름으로 만들었습니다.
-
-```text
-/usr/local/bin/hello-system.sh
-```
-
-Service Unit은:
+마지막 Day 6-6에서는 연습용 `hello-systemd.service`를 기준으로 다음 장애 유형과 복구 흐름을 정리했습니다.
 
 ```text
-/etc/systemd/system/hello-systemd.service
-```
-
-로 구성했고 `ExecStart=/usr/local/bin/hello-system.sh`처럼 실제 Script 경로와 맞춰 사용했습니다.
-
-직접 수행한 흐름:
-
-```text
-Script 작성
-→ chmod +x
-→ Unit 작성
+ExecStart 잘못된 경로
+→ status / journal
+→ cat / ls로 원인 확인
+→ 경로 수정
 → daemon-reload
-→ cat/show 확인
-→ start
-→ status
-→ Process 확인
-→ journal 조회 / follow
-→ stop
-→ Process 종료 검증
-→ enable / disable
-→ symbolic link 확인
-→ enable --now
-→ is-active / is-enabled 검증
+→ 재시작 / 검증
+
+Script 실행 권한 제거
+→ Permission denied
+→ ls -l로 x 권한 확인
+→ chmod +x
+→ 재시작 / 검증
+
+Unit 수정 후 daemon-reload 누락
+→ Disk의 Unit 정의와 systemd 인식값 불일치
+→ daemon-reload
+→ show/status로 재확인
+
+Main PID 강제 종료
+→ Restart=on-failure
+→ 새 Process / Main PID 생성 여부 확인
 ```
 
-출력 원문은 공유되지 않았으므로 특정 PID나 실제 status 내용을 임의로 기록하지 않았습니다.
+핵심 Troubleshooting 절차:
 
-다음은 **이 연습용 Service에 일부러 장애를 만들어 `failed` 상태와 journal을 이용해 원인을 찾고 복구하는 Troubleshooting 실습**입니다.
+```text
+증상
+→ systemctl status
+→ journalctl
+→ systemctl cat / show
+→ 파일·권한·Process 확인
+→ 가설
+→ 원인 확정
+→ 최소 조치
+→ daemon-reload 필요 여부 판단
+→ start/restart
+→ status/journal
+→ 실제 기능 검증
+→ 재발 방지
+```
+
+출력 원문은 공유되지 않았으므로 특정 PID나 실제 오류 문구를 사용자의 실측 결과처럼 기록하지 않았습니다.
+
+다음 학습은 **Day 7 — Linux 패키지 관리: apt, dpkg, Repository**입니다.
