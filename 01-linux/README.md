@@ -47,6 +47,7 @@ Linux Master 2급은 빠뜨리지 않기 위한 최소 기준으로 사용하고
 | 직접 Service 만들기, `Type=simple`, Script, `chmod +x`, `start/stop`, `enable --now`, journal, symbolic link | [Day 6-5 — 직접 systemd Service 만들기와 Lifecycle 실습](day-06-05-custom-service-lifecycle-journal-enable.md) |
 | `failed`, `ExecStart` 경로 오류, `Permission denied`, `reset-failed`, `Restart=on-failure`, systemd 장애 분석 | [Day 6-6 — systemd Service 장애 분석과 Troubleshooting](day-06-06-systemd-service-failure-troubleshooting.md) |
 | Package, `.deb`, Dependency, Repository, 로컬 Package Index, `apt`, `dpkg`, `apt update/install/policy`, `dpkg -S/-L` | [Day 7-1 — Package·Repository·apt·dpkg 기초](day-07-01-package-apt-dpkg-repository-basics.md) |
+| APT Repository 구조, `sources.list`, `sources.list.d`, Suite, Component, `apt update`, `InRelease`, Signature, Checksum, `/var/lib/apt/lists`, `/var/cache/apt/archives` | [Day 7-2 — APT Repository 구조와 apt update 내부 동작](day-07-02-apt-repository-structure-and-update-flow.md) |
 | 지금까지 사용한 Linux 명령어와 Option 빠른 검색 | [Linux Command & Option Reference](reference-linux-commands-options.md) |
 
 ---
@@ -77,6 +78,7 @@ Linux Master 2급은 빠뜨리지 않기 위한 최소 기준으로 사용하고
 | 06-05 | [직접 systemd Service 만들기와 Lifecycle 실습](day-06-05-custom-service-lifecycle-journal-enable.md) | Script/Unit 작성, daemon-reload, start/stop, journal, enable/disable, symbolic link | ✅ |
 | 06-06 | [systemd Service 장애 분석과 Troubleshooting](day-06-06-systemd-service-failure-troubleshooting.md) | failed, ExecStart 오류, permission, daemon-reload 누락, Restart 정책, 복구 검증 | ✅ |
 | 07-01 | [Package·Repository·apt·dpkg 기초](day-07-01-package-apt-dpkg-repository-basics.md) | Package/.deb, Dependency, Repository, 로컬 Index, apt/dpkg 역할, 기본 조회 명령 | ✅ |
+| 07-02 | [APT Repository 구조와 apt update 내부 동작](day-07-02-apt-repository-structure-and-update-flow.md) | sources.list(.d), Suite/Component, Metadata, Signature/Checksum, lists/cache, apt update 흐름 | ✅ |
 
 ---
 
@@ -250,43 +252,40 @@ Script 존재/권한 확인
 
 ## ✅ 현재 진행 상태
 
-**Day 0 ~ Day 7-1 완료.**
+**Day 0 ~ Day 7-2 완료.**
 
-Day 6 systemd / Service 관리 파트를 마치고, Day 7 패키지 관리 학습을 시작했습니다.
+Day 7-2에서는 APT가 어떤 Repository를 바라보는지와 `apt update`의 내부 흐름을 정리했습니다.
 
-Day 7-1에서는 다음 핵심 개념을 정리했습니다.
+핵심 구조:
 
 ```text
-Package
-→ 프로그램을 설치/업데이트/삭제할 수 있도록 묶은 배포 단위
+/etc/apt/sources.list
+/etc/apt/sources.list.d/
+→ 사용할 Repository 정의
 
 Repository
-→ 실제 Package와 Metadata를 제공하는 저장소
+→ Packages / Release / InRelease 등의 Metadata 제공
 
 apt update
-→ Repository의 Package 목록/Metadata를 로컬에 갱신
+→ Repository Metadata를 가져오고 검증
+→ /var/lib/apt/lists/ 갱신
 
 apt install
-→ 로컬 Metadata를 참고해 실제 Package와 Dependency를 Repository에서 다운로드하고 설치
-
-apt
-→ Repository와 Dependency를 포함한 고수준 Package 관리
-
-dpkg
-→ Debian .deb Package와 로컬 설치 상태를 직접 다루는 저수준 도구
+→ 로컬 Package Index를 참고
+→ Candidate/Dependency 결정
+→ 실제 .deb 다운로드 및 설치
 ```
 
-특히 다음 오해를 구분했습니다.
+중요한 경로 구분:
 
 ```text
-Repository에 있는 모든 Package가 로컬에 미리 존재하는 것은 아님
-→ 로컬에는 주로 Package Index / Metadata가 존재
+/var/lib/apt/lists/
+→ Package Index / Metadata
 
-apt update
-≠ 설치된 프로그램 업데이트
-
-apt --version
-→ apt 프로그램 자체의 Version
+/var/cache/apt/archives/
+→ 실제 다운로드한 .deb Package 캐시 가능 위치
 ```
 
-다음 학습은 **Day 7-2 — APT Repository 구조와 apt update 내부 흐름**입니다.
+또한 Repository의 Suite/Distribution, Component(`main`, `universe`, `restricted`, `multiverse`), Signature와 Checksum, `apt update` 출력의 `Hit/Get/Ign/Err` 의미, 외부 Repository를 추가할 때 신뢰 범위를 넓힌다는 운영 관점까지 학습했습니다.
+
+다음 학습은 **Day 7-3 — 실제 Package 설치/삭제와 dpkg 상태 확인**입니다.
