@@ -49,6 +49,7 @@ Linux Master 2급은 빠뜨리지 않기 위한 최소 기준으로 사용하고
 | Package, `.deb`, Dependency, Repository, 로컬 Package Index, `apt`, `dpkg`, `apt update/install/policy`, `dpkg -S/-L` | [Day 7-1 — Package·Repository·apt·dpkg 기초](day-07-01-package-apt-dpkg-repository-basics.md) |
 | APT Repository 구조, `sources.list`, `sources.list.d`, Suite, Component, `apt update`, `InRelease`, Signature, Checksum, `/var/lib/apt/lists`, `/var/cache/apt/archives` | [Day 7-2 — APT Repository 구조와 apt update 내부 동작](day-07-02-apt-repository-structure-and-update-flow.md) |
 | `apt install`, `remove`, `purge`, `autoremove`, `--dry-run`, `dpkg -l/-L/-S`, `ii`, `rc`, 설치/삭제 검증 | [Day 7-3 — Package 설치·삭제와 dpkg 상태 확인](day-07-03-package-install-remove-purge-dpkg-status.md) |
+| `apt list --upgradable`, `apt policy`, Version/Epoch, `upgrade`, `full-upgrade`, `--only-upgrade`, `apt-mark hold/unhold`, Kernel/Reboot | [Day 7-4 — Package 업데이트·Version·hold/unhold](day-07-04-package-upgrade-version-hold.md) |
 | 지금까지 사용한 Linux 명령어와 Option 빠른 검색 | [Linux Command & Option Reference](reference-linux-commands-options.md) |
 
 ---
@@ -81,6 +82,7 @@ Linux Master 2급은 빠뜨리지 않기 위한 최소 기준으로 사용하고
 | 07-01 | [Package·Repository·apt·dpkg 기초](day-07-01-package-apt-dpkg-repository-basics.md) | Package/.deb, Dependency, Repository, 로컬 Index, apt/dpkg 역할, 기본 조회 명령 | ✅ |
 | 07-02 | [APT Repository 구조와 apt update 내부 동작](day-07-02-apt-repository-structure-and-update-flow.md) | sources.list(.d), Suite/Component, Metadata, Signature/Checksum, lists/cache, apt update 흐름 | ✅ |
 | 07-03 | [Package 설치·삭제와 dpkg 상태 확인](day-07-03-package-install-remove-purge-dpkg-status.md) | apt install/remove/purge, dpkg 상태 코드, Package↔File 조회, autoremove dry-run | ✅ |
+| 07-04 | [Package 업데이트·Version·hold/unhold](day-07-04-package-upgrade-version-hold.md) | upgradable/policy, Version/Epoch, upgrade/full-upgrade, dry-run, hold/unhold, Kernel/Reboot | ✅ |
 
 ---
 
@@ -254,58 +256,54 @@ Script 존재/권한 확인
 
 ## ✅ 현재 진행 상태
 
-**Day 0 ~ Day 7-3 완료.**
+**Day 0 ~ Day 7-4 완료.**
 
-Day 7-3에서는 작은 CLI Package인 `tree`를 예제로 설치부터 제거까지 Package lifecycle을 정리했습니다.
+Day 7-4에서는 Package 업데이트를 단순히 `apt upgrade` 명령으로 보지 않고, **현재 Version과 Candidate를 비교하고 변경 범위를 통제하는 운영 작업**으로 정리했습니다.
 
 핵심 흐름:
 
 ```text
-apt policy
-→ 설치 전 Installed / Candidate 확인
+sudo apt update
+→ Local Package Index 최신화
 
-apt install
-→ Repository/Index를 이용해 실제 Package 설치
+apt list --upgradable
+→ 업데이트 가능한 Package 확인
 
-dpkg -l
-→ 로컬 dpkg Database의 설치 상태 확인
+apt policy PACKAGE
+→ Installed / Candidate / Version Source 확인
 
-dpkg -L
-→ Package → Files
+apt-mark showhold
+→ Version 고정 대상 확인
 
-dpkg -S
-→ File → Package
+apt upgrade --dry-run
+apt full-upgrade --dry-run
+→ 실제 변경 전 NEW / REMOVED / Upgrade 범위 비교
 
-apt remove
-→ Package 제거 중심
-
-apt purge
-→ Package + Package 관리 설정 파일 제거
-
-apt autoremove --dry-run
-→ 더 이상 필요하지 않은 자동 Dependency 제거 후보를 실제 변경 없이 확인
+실제 업데이트
+→ Version 재확인
+→ Service / Process / Log / 기능 검증
+→ Reboot 필요 여부 확인
 ```
 
-특히 `dpkg -l`의 대표 상태 코드:
+주요 개념:
 
 ```text
-ii
-→ 정상 설치 상태로 이해
+apt upgrade
+→ 기존 Package 제거 없이 가능한 범위에서 업데이트
 
-rc
-→ Package 본체는 제거되었지만 config-files가 남은 상태
+apt full-upgrade
+→ Dependency 해결을 위해 필요하면 기존 Package 제거까지 허용
+
+apt-mark hold PACKAGE
+→ 특정 Package Version 고정
+
+apt-mark unhold PACKAGE
+→ 고정 해제
+
+apt install --only-upgrade PACKAGE
+→ 이미 설치된 특정 Package만 업데이트
 ```
 
-를 구분했고, Package 설치/삭제 명령이 성공했다는 것만으로 끝내지 않고:
+또한 Debian/Ubuntu Version 문자열의 Epoch / Upstream Version / Packaging Revision을 구분했고, Kernel Package 업데이트와 현재 실행 Kernel(`uname -r`)의 차이, Disk의 Binary가 교체되어도 실행 중 Process가 즉시 새 코드로 바뀌는 것은 아니라는 Day 5·6 연결 개념까지 정리했습니다.
 
-```text
-설치 상태
-→ 파일 위치
-→ Version
-→ 실제 실행
-→ Service라면 systemctl/journal
-```
-
-까지 검증하는 운영 습관을 연결했습니다.
-
-다음 학습은 **Day 7-4 — Package 업데이트, Version, hold/unhold, upgrade/full-upgrade**입니다.
+다음 학습은 **Day 7-5 — Package 장애 복구와 Troubleshooting**입니다.
